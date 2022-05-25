@@ -1,0 +1,20 @@
+{
+  "name": "mind-hackers",
+  "version": "0.0.1",
+  "description": "An experiment using gpt3.",
+  "main": "index.ts",
+  "repository": "git@github.com:beothorn/mind-hackers.git",
+  "author": "beothorn",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build-ts": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.35",
+    "typescript": "^4.7.2"
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.4"
+  }
+}
