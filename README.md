@@ -114,6 +114,8 @@ Mary talks to Lucas about sports, does Lucas like it, yes or no?
 
 Another idea is to allow the player to add one phrase to this premise to try hacking the output from gpt-3 by doing an idea inception on the npcs.
 
+That would be the mind-hacking part.
+
 # MVP
 
 A text game where you try to get promoted inside a company, starting as an intern and climbing up the ladder.
