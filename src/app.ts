@@ -1,5 +1,7 @@
 import fetch from 'node-fetch';
 
+const IS_DEBUG_MODE = false;
+
 let apiToken = process.env.OPENAI_API_KEY;
 
 type Relation = {
@@ -113,10 +115,12 @@ function gptCompletion(text: string): Promise<unknown> {
         .then(r => r.json())
         .then((r: any) => {
             const response = r.choices[0].text;
-            console.log(`+++++++++++++++++++++++++++++++
-            Local:${text}
-            GPT:${response}
-            ++++++++++++++++++++++++++++++++++`);
+            if(IS_DEBUG_MODE){
+                console.log(`+++++++++++++++++++++++++++++++
+                Local:${text}
+                GPT:${response}
+                ++++++++++++++++++++++++++++++++++`);
+            }
             return response;
         });
 }
@@ -142,10 +146,18 @@ const topicOptions = ['weather', 'sports', 'animals', 'children', 'travelling', 
 const interactions = ['start a conversation about', 'tell a joke about', 'compliment'];
 // Player chooses interaction
 // 'start a conversation about' 'weather'
+console.log('Choose an interaction:')
+console.log(JSON.stringify(interactions))
 const interaction = 0;
+console.log(`Player chose: ${interactions[interaction]}`)
+console.log('Choose a topic:')
+console.log(JSON.stringify(topicOptions))
 const topic = 0;
+console.log(`Player chose: ${topicOptions[topic]}`)
 // Player implants a thought on npc (sentence of maximun five words)
+console.log(`Incept a thought on ${personB.name}, (sentence of maximun five words):`)
 const inception = `I love talking to Luke.`;
+console.log(`Player inception: ${inception}`)
 //const inception = `I hate talking to Luke.`;
 
 const inceptionTextForGPT = `${personB.name} is thinking: '${inception}'`;
@@ -154,6 +166,7 @@ const inceptionTextForGPT = `${personB.name} is thinking: '${inception}'`;
 
 const chosenInteraction = `${personA.name} ${interactions[interaction]} ${topicOptions[topic]}`
 
+console.log(`=========================================`);
 console.log(chosenInteraction);
 
 const askGPTToRenderScene = `${text}
