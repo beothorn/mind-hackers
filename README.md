@@ -2,6 +2,79 @@
 
 A game/experiment using gpt-3 api.
 
+# Core idea
+
+If we use gpt3 to decide state transition, would the results be consistent? Would it be a fun game?
+We can constraint the player to a list of predetermined actions to have control over the narrative.
+Then after every interaction we ask gpt3 very specific questions to update the game state.
+
+The steps would be:
+- Generate a text based on current state and a situation
+- Ask gpt3 if a state should be changed
+- Update game state
+- Describe situation and state change, ask gpt3 to narrate this (gpt3 is treated like a renderer for the game state)
+
+For example, given the state we generate a text:
+
+```
+let playerAStatus = {
+    name: "Warrior",
+    attack: 8,
+    weapon: 'fire sword' 
+}
+
+let npc = {
+    name: "Zombie",
+    life: 2,
+    defense: 4,
+    strength: 'fire',
+    weakness: 'cold',
+}
+
+let situation = {
+    place: 'Mount foo',
+    weather: 'snowing'
+}
+
+`Warrior and Zombie are fighting on Mount foo. It is snowing. 
+The Zombie is strong against fire. The Zombie is weak against cold.
+The Warrior attack is two times the Zombie defense.
+The Warrior attacks the Zombie with a fire sword.
+
+Does the Zombie gets hurt, yes or no?
+`
+
+GPT3 = `Yes`
+
+npc.life --;
+
+
+GPT_INPUT = `
+This text was written by someone who does not know how to write a good story:
+
+Warrior and Zombie are fighting on Mount foo. It is snowing. 
+The Zombie is strong against fire. The Zombie is weak against cold.
+The Warrior attack is two times the Zombie defense.
+The Warrior attacks the Zombie with a fire sword.
+The Zombie is hurt by the Warrior.
+The Zombie is still alive, but weaker.
+
+If this was written by Tolkien on lord of the rings it would have a lot more details.
+Like a description of Mount Foo and the Warrior and The Zombie and the attack. 
+It would be very different, like this:
+
+`
+
+GPT3 = `
+On Mount Foo, a warrior and a zombie are locked in combat. The air is frigid and snow falls in thick blankets, coating the ground. The zombie is strong against fire, but weak against cold.
+
+The warrior attacks with a fire sword. The zombie is hurt, but does not fall. The battle continues.`
+
+// funny how you need to convince gpt3 to improve the text
+
+
+```
+
 # The idea
 
 If we have a game like "The sims", describe in a text the log of interactions, the player statuses, the social status and then ask gpt-3 to decide what to do next, what would happen?
