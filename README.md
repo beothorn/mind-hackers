@@ -7,9 +7,10 @@ A game/experiment using gpt-3 api.
 If we use gpt3 to decide state transition, would the results be consistent? Would it be a fun game?
 We can constraint the player to a list of predetermined actions to have control over the narrative.
 Then after every interaction we ask gpt3 very specific questions to update the game state.
+The game state is hidden from the player. Only the gpt narrative of the events is shown.
 
 The steps would be:
-- Generate a text based on current state and a situation
+- Generate a text based on state
 - Ask gpt3 if a state should be changed
 - Update game state
 - Describe situation and state change, ask gpt3 to narrate this (gpt3 is treated like a renderer for the game state)
@@ -116,12 +117,93 @@ Another idea is to allow the player to add one phrase to this premise to try hac
 
 That would be the mind-hacking part.
 
-# MVP
+# Proof of concept
 
-A text game where you try to get promoted inside a company, starting as an intern and climbing up the ladder.
+A simulation where you are having dinner with a friend.
 
-Ideas:
- - Series of events, maybe partially created by gpt3, where the output updates your status on the company, how the coworkers perceive the player.
- - After a year gpt3 interview player and decide if they get a promotion or a raise.
- - At the start player only see the narrative part. Later player acquires mind reading powers. At some point the player is able to insert thoughts on other npcs.
+There are two goals, get your friend to pay for the dinner (including a good tip) and get a key for the employees only bathroom.
 
+There is a fixed list of possible interactions, but you can insert a thought inside the other persons head on each interaction. 
+
+The insertion is a sentence of maximum 5 words and will work only sometimes.
+
+## Characters
+- Player
+- Waitress
+- Friend
+
+## Game State:
+### Player:
+```
+Name: text
+HasBathroomKey: boolean = false
+```
+### Waitress
+```
+Name: text
+HasBathroomKey: boolean = true
+
+On Player:
+  ThinksIsAnEmployee: boolean = false
+  Trust: int: 0 // scale from 0 to 10, interactions can increase this value
+  
+On Friend:
+  ThinksIsAnEmployee: boolean = false
+  Trust: int: 0 // scale from 0 to 10, interactions can increase this value
+```
+
+### Friend
+
+```
+Name: text
+WillPayForDinner: boolean = false
+WillGiveAGoodTip: boolean = false
+Likes: string[] = ['boats', 'cars', 'photography']
+Dislikes: string[] = ['computers', 'pets', 'tv']
+
+On Player:
+  Trust: int: 5 // scale from 0 to 10, interactions can increase this value
+  
+On Waitress:
+  IsSatisfiedWithTheService: boolean = true
+```
+
+## Interactions
+
+### Waitress
+
+Order 
+- Food
+- Drink
+Ask 
+- For the bill
+- To use the bathroom
+- For the employees bathroom key
+Compliment
+- Service
+- Waitress
+- Restaurant
+- Food
+Complain about
+- Service
+- Waitress
+- Restaurant
+- Food
+
+
+### Friend
+
+Ask
+- to pay for the dinner
+- to give the waitress a good tip
+Talk about
+ - Boats
+ - Cars
+ - Photography
+ - Computers
+ - Pets
+ - Tv
+ - Weather
+ - Food
+ - Drink
+Give a compliment
