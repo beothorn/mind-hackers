@@ -32,7 +32,7 @@ export function Presentation({advance}: {advance: ()=>void}) {
             </CardContent>
             <CardActions>
                 <TextField required size="small" id="open-ai-key" label="OpenAi key" variant="outlined" />
-                <Button variant="contained" onClick={advance}>Ok</Button>
+                <Button sx={{marginLeft: 1}} variant="contained" onClick={advance}>Ok</Button>
             </CardActions>
         </Card>        
     </Box>;
