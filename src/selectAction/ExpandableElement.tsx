@@ -6,8 +6,7 @@ import Collapse from '@mui/material/Collapse';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 
-
-export function ExpandableElement({action, children}: {action: string, children: any}) {
+export function ExpandableElement({action, children}: {action: string, children: React.ReactNode[]}) {
 
     const [open, setOpen] = React.useState(false);
 

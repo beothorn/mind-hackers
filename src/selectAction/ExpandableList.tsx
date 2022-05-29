@@ -7,8 +7,12 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
+type Option = {
+    name: string,
+    icon: any
+}
 
-export function ExpandableList({action, options}: {action: string, options: any[]}) {
+export function ExpandableList({action, options}: {action: string, options: Option[]}) {
 
     const [open, setOpen] = React.useState(false);
 

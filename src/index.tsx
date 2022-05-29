@@ -1,7 +1,8 @@
-import { SelectAction } from './selectAction/SelectAction';
 import React from 'react'
+import { App } from './App';
 import ReactDOM from 'react-dom/client'
 import '@fontsource/roboto/300.css';
+
 
 const rootElement = document.getElementById('root');
 if(!rootElement){
@@ -9,7 +10,7 @@ if(!rootElement){
 }
 
 const root = ReactDOM.createRoot(rootElement);
-root.render(<SelectAction />);
+root.render(<App/>);
 
 /*
 

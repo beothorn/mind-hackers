@@ -4,7 +4,6 @@ import React from 'react'
 import '@fontsource/roboto/300.css';
 import List from '@mui/material/List';
 import ListSubheader from '@mui/material/ListSubheader';
-import Box from '@mui/material/Box';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
 import SportsBarIcon from '@mui/icons-material/SportsBar';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -25,6 +24,7 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import FaceRetouchingNaturalIcon from '@mui/icons-material/FaceRetouchingNatural';
+import Box from '@mui/material/Box';
 
 const interactions = [
     {
@@ -185,18 +185,18 @@ const interactions = [
 export function SelectAction() {
 
     return <Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
-    <List
-        subheader={
-            <ListSubheader>
-                Next Action
-            </ListSubheader>
-        }
-    >
-        {
-            interactions.map( i => <ExpandableElement key={i.character} action={i.character}>
-                {i.interactions.map(interactionGroup => <ExpandableList key={interactionGroup.action} {...interactionGroup}/>)}
-            </ExpandableElement>)
-        }
-    </List>
-</Box>;
+        <List
+            subheader={
+                <ListSubheader>
+                    Next Action
+                </ListSubheader>
+            }
+        >
+            {
+                interactions.map( i => <ExpandableElement key={i.character} action={i.character}>
+                    {i.interactions.map(interactionGroup => <ExpandableList key={interactionGroup.action} {...interactionGroup}/>)}
+                </ExpandableElement>)
+            }
+        </List>
+    </Box>;
 }
