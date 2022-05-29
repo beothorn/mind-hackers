@@ -13,7 +13,7 @@ export function Presentation({advance}: {advance: ()=>void}) {
         <Card>
             <CardContent>
                 <Typography variant="h6" gutterBottom>
-                    An experiemnt with gpt-3
+                    An experient with gpt-3
                 </Typography>
                 <Typography variant="body1" gutterBottom>
                     A simulation where you are having dinner with a friend.
