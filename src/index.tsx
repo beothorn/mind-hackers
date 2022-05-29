@@ -1,16 +1,7 @@
+import { SelectAction } from './selectAction/SelectAction';
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import '@fontsource/roboto/300.css';
-import List from '@mui/material/List';
-import ListSubheader from '@mui/material/ListSubheader';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemButton from '@mui/material/ListItemButton';
-import Collapse from '@mui/material/Collapse';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import Box from '@mui/material/Box';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import FastfoodIcon from '@mui/icons-material/Fastfood';
-import SportsBarIcon from '@mui/icons-material/SportsBar';
 
 const rootElement = document.getElementById('root');
 if(!rootElement){
@@ -18,66 +9,7 @@ if(!rootElement){
 }
 
 const root = ReactDOM.createRoot(rootElement);
-/*
-Order 
-- Food
-- Drink
-Ask 
-- For the bill
-- To use the bathroom
-- For the employees bathroom key
-Compliment
-- Service
-- Waitress
-- Restaurant
-- Food
-Complain about
-- Service
-- Waitress
-- Restaurant
-- Food
-*/
-root.render(
-    <Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
-        <List
-        component="nav"
-        aria-labelledby="nested-list-subheader"
-        subheader={
-            <ListSubheader component="div" id="nested-list-subheader">
-            Next Action
-            </ListSubheader>
-        }
-        >
-            <ListItemButton>
-                <ListItemText primary="Waitress" />
-                <ExpandMore />
-            </ListItemButton>
-            <Collapse in={true} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                    <ListItemButton sx={{ pl: 4 }}>
-                        <ListItemText primary="Order" />
-                        <ExpandMore />
-                    </ListItemButton>
-                    <Collapse in={true} timeout="auto" unmountOnExit>
-                        <List component="div" disablePadding>
-                            <ListItemButton sx={{ pl: 8 }}>
-                                <ListItemIcon>
-                                    <FastfoodIcon />
-                                </ListItemIcon>
-                                <ListItemText primary="Food" />
-                            </ListItemButton>
-                            <ListItemButton sx={{ pl: 8 }}>
-                                <ListItemIcon>
-                                    <SportsBarIcon />
-                                </ListItemIcon>
-                                <ListItemText primary="Drink" />
-                            </ListItemButton>
-                        </List>
-                    </Collapse>
-                </List>
-            </Collapse>
-        </List>
-    </Box>);
+root.render(<SelectAction />);
 
 /*
 
