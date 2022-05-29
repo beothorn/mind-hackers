@@ -8,16 +8,23 @@
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && yarn webpack --config webpack.config.js",
-    "start": "rm -rf dist && rm public/index.html && yarn run build && webpack serve --config webpack.config.js --hot",
+    "start": "rm -rf dist && rm -f public/index.html && mkdir -p public && cp index.html public/index.html && yarn run build && webpack serve --config webpack.config.js --hot",
     "deploy": "yarn build && cp dist/bundle.js ghpage/bundle.js && cp public/index.html ghpage/index.html"
   },
   "devDependencies": {
     "@types/node": "^17.0.35",
+    "css-loader": "^6.7.1",
+    "style-loader": "^3.3.1",
     "typescript": "^4.7.2",
     "webpack": "^5.72.1",
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@emotion/react": "^11.9.0",
+    "@emotion/styled": "^11.8.1",
+    "@fontsource/roboto": "^4.5.7",
+    "@mui/icons-material": "^5.8.0",
+    "@mui/material": "^5.8.1",
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.5",
     "react": "^18.1.0",
