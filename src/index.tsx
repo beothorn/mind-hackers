@@ -1,8 +1,22 @@
-import fetch from 'node-fetch';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+
+const rootElement = document.getElementById('root');
+if(!rootElement){
+    throw new Error('Root element not found');
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(<>
+    <h1>Friend</h1>
+    <h1>Waitress</h1>
+</>);
+
+/*
 
 const IS_DEBUG_MODE = false;
 
-let apiToken = process.env.OPENAI_API_KEY;
+let apiToken = "";
 
 type Relation = {
     name: string,
@@ -152,11 +166,11 @@ const interaction = 0;
 console.log(`Player chose: ${interactions[interaction]}`)
 console.log('Choose a topic:')
 console.log(JSON.stringify(topicOptions))
-const topic = 0;
+const topic = 5;
 console.log(`Player chose: ${topicOptions[topic]}`)
 // Player implants a thought on npc (sentence of maximun five words)
 console.log(`Incept a thought on ${personB.name}, (sentence of maximun five words):`)
-const inception = `I love talking to Luke.`;
+const inception = `Luke thinks robots are doom for mankind`;
 console.log(`Player inception: ${inception}`)
 //const inception = `I hate talking to Luke.`;
 
@@ -197,6 +211,7 @@ gptCompletion(askGPTToRenderScene).then((text: any) => {
 
     gptCompletion(newSituation).then((text: any) => {
         const gptRepsonse: string = text.trim().toLowerCase();
+        console.log(`_______________________________`);
         if(gptRepsonse.includes('yes')){
             console.log(`${personB.name} opinion of ${personA.name} improved.`);
             increaseRelation(personB.name, personA.name);
@@ -207,3 +222,5 @@ gptCompletion(askGPTToRenderScene).then((text: any) => {
         console.log(JSON.stringify(people, null, 2));
     })
 });
+
+*/
