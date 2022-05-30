@@ -8,7 +8,14 @@ import CardActions from '@mui/material/CardActions';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 
-export function Presentation({advance}: {advance: ()=>void}) {
+export function Presentation({advance}: {advance: (openAiKey: string)=>void}) {
+
+    const [openAiKey, setOpenAiKey] = React.useState('');
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setOpenAiKey(event.target.value);
+    };
+
     return <Box sx={{ padding: '1rem' }}>
         <Card>
             <CardContent>
@@ -31,8 +38,15 @@ export function Presentation({advance}: {advance: ()=>void}) {
                 </Typography>
             </CardContent>
             <CardActions>
-                <TextField required size="small" id="open-ai-key" label="OpenAi key" variant="outlined" />
-                <Button sx={{marginLeft: 1}} variant="contained" onClick={advance}>Ok</Button>
+                <TextField 
+                    value={openAiKey}
+                    onChange={handleChange}
+                    required size="small" 
+                    id="open-ai-key" 
+                    label="OpenAi key" 
+                    variant="outlined" 
+                />
+                <Button sx={{marginLeft: 1}} variant="contained" onClick={() => advance(openAiKey)}>Ok</Button>
             </CardActions>
         </Card>        
     </Box>;

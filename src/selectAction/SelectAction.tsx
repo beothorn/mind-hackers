@@ -184,7 +184,7 @@ const interactions = [
 
 export function SelectAction() {
 
-    return <Box sx={{ width: '100%', bgcolor: 'background.paper' }}>
+    return <Box sx={{ bgcolor: 'background.paper' }}>
         <List
             subheader={
                 <ListSubheader>
