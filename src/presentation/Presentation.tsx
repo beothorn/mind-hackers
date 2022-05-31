@@ -1,4 +1,6 @@
 import React from 'react'
+import { batch } from 'react-redux'
+
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -8,13 +10,25 @@ import CardActions from '@mui/material/CardActions';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 
-export function Presentation({advance}: {advance: (openAiKey: string)=>void}) {
+import { useAppSelector, useAppDispatch } from '../hooks'
+import { selectOpenAiKey, actionSetOpenAiKey, actionSetScreen } from '../appStateSlice';
 
-    const [openAiKey, setOpenAiKey] = React.useState('');
+export function Presentation() {
+
+    const openAiKey = useAppSelector(selectOpenAiKey);
+    const dispatch = useAppDispatch()
+    const [openAiKeyInputValue, setOpenAiKey] = React.useState(openAiKey);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setOpenAiKey(event.target.value);
     };
+
+    const updateKey = () => {
+        batch(() => {
+            dispatch(actionSetOpenAiKey(openAiKeyInputValue));
+            dispatch(actionSetScreen('showText'));
+        })
+    }
 
     return <Box sx={{ padding: '1rem' }}>
         <Card>
@@ -39,14 +53,14 @@ export function Presentation({advance}: {advance: (openAiKey: string)=>void}) {
             </CardContent>
             <CardActions>
                 <TextField 
-                    value={openAiKey}
+                    value={openAiKeyInputValue}
                     onChange={handleChange}
                     required size="small" 
                     id="open-ai-key" 
                     label="OpenAi key" 
                     variant="outlined" 
                 />
-                <Button sx={{marginLeft: 1}} variant="contained" onClick={() => advance(openAiKey)}>Ok</Button>
+                <Button sx={{marginLeft: 1}} variant="contained" onClick={updateKey}>Ok</Button>
             </CardActions>
         </Card>        
     </Box>;

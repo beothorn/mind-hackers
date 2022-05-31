@@ -1,11 +1,21 @@
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Box from '@mui/material/Box';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-export function ShowText({openAiKey, advance}: {openAiKey:string, advance: (openAiKey: string)=>void}) {
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+
+import { useAppSelector, useAppDispatch } from '../hooks'
+import { selectOpenAiKey } from '../appStateSlice';
+import type { AppScreen } from '../appStateSlice';
+
+export function ShowText() {
+    const openAiKey = useAppSelector(selectOpenAiKey);
+    const dispatch = useAppDispatch()
+
     const [data, setData] = useState('Loading...');
+
+    const gotoNextScreen = () => dispatch({type: 'appState/setScreen', payload: ('selectAction' as AppScreen)});
 
     const dinnerIntro = `You were invited to dinner by your friend Jonas. The restaurant is small but looks nice.
 You really need to go to the bathroom. You also realised that you forgot to bring your wallet.
@@ -44,6 +54,6 @@ You start a conversation with Jonas, but avoid telling him about your wallet. Yo
         <Typography variant="body1" gutterBottom>
             {data === '' ? 'Ackward silence...' : data}
         </Typography>
-        <Button sx={{marginLeft: 1}} variant="contained" onClick={() => advance(openAiKey)}>Continue</Button>
+        <Button sx={{marginLeft: 1}} variant="contained" onClick={gotoNextScreen}>Continue</Button>
     </Box>;
 }

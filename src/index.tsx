@@ -1,8 +1,11 @@
-import React from 'react'
-import { App } from './App';
-import ReactDOM from 'react-dom/client'
-import '@fontsource/roboto/300.css';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 
+import { App } from './App';
+import { Provider } from 'react-redux'
+
+import store from './store'
+import '@fontsource/roboto/300.css';
 
 const rootElement = document.getElementById('root');
 if(!rootElement){
@@ -10,7 +13,9 @@ if(!rootElement){
 }
 
 const root = ReactDOM.createRoot(rootElement);
-root.render(<App/>);
+root.render(<Provider store={store}>
+    <App />
+</Provider>);
 
 /*
 
