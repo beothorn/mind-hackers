@@ -3,7 +3,7 @@ import React, { useEffect } from 'react'
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useAppSelector, useAppDispatch } from '../hooks'
-import { actionSetScreen, actionCheckOpenAiKey, selectOpenAiKey } from '../appStateSlice';
+import { actionSetScreen, dispatchActionCheckOpenAiKey, selectOpenAiKey } from '../appStateSlice';
 
 export function TestOpenAiToken() {
 
@@ -13,12 +13,12 @@ export function TestOpenAiToken() {
 
     useEffect(() => {
         if(openAiKeyFromStore !== ''){
-            actionCheckOpenAiKey(dispatch, openAiKeyFromStore)
+            dispatchActionCheckOpenAiKey(dispatch, openAiKeyFromStore)
         }else{
             if (openAiKeyFromStorage === null ||  openAiKeyFromStorage === '') {
                 dispatch(actionSetScreen('presentation'));
             }else{
-                actionCheckOpenAiKey(dispatch, openAiKeyFromStorage)
+                dispatchActionCheckOpenAiKey(dispatch, openAiKeyFromStorage)
             }
         }
     }, [openAiKeyFromStore, openAiKeyFromStorage]);

@@ -44,6 +44,9 @@ export function Presentation() {
         <Typography variant="body1">
             If you don't have one, you can get one  <Link href="https://beta.openai.com/" underline="none">here</Link>.
         </Typography>
+        <Typography sx={{marginBottom: '1rem'}} variant="body1">
+            And if you want to look at the source code, it is <Link href="https://github.com/beothorn/mind-hackers" underline="none">here</Link>.
+        </Typography>
         <TextField 
             value={openAiKeyInputValue}
             onChange={handleChange}

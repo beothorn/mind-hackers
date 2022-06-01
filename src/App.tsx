@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Presentation } from './presentation/Presentation';
+import { ShowIntro } from './showIntro/ShowIntro';
 import { SelectAction } from './selectAction/SelectAction';
 import { ShowText } from './showText/ShowText';
 import { TestOpenAiToken } from './testOpenAiToken/TestOpenAiToken';
@@ -17,6 +18,9 @@ export function App() {
     switch (currentScreen) {
         case 'presentation':
             currentScreenComponent = <Presentation />;
+            break;
+        case 'showIntro':
+            currentScreenComponent = <ShowIntro />;
             break;
         case 'selectAction':
             currentScreenComponent = <SelectAction />;

@@ -1,35 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
 import { useAppSelector, useAppDispatch } from '../hooks'
-import { selectOpenAiKey, actionSetScreen } from '../appStateSlice';
+import { selectOpenAiKey, selectRestaurantDescription, actionSetScreen, dispatchActionQueryRestaurantDescription } from '../appStateSlice';
 
-import { getCompletion } from '../OpenAiApi'
-
-export function ShowText() {
+export function ShowIntro() {
     const openAiKey = useAppSelector(selectOpenAiKey);
+    const restaurantDescription = useAppSelector(selectRestaurantDescription);
+    
     const dispatch = useAppDispatch()
-
-    const [data, setData] = useState('Loading...');
-
     const gotoNextScreen = () => dispatch(actionSetScreen('selectAction'));
 
-    const openAiQuery = `You were invited to dinner by your friend Jonas. The restaurant is small but looks nice. I will try to describe this restaurant:`;
-
     useEffect(() => {
-        const genDinnerIntro = async () => {
-            const result: any = await getCompletion(openAiKey, openAiQuery);
-            setData(result.data.choices[0].text);
-        };
-
-        genDinnerIntro();
+        dispatchActionQueryRestaurantDescription(dispatch, openAiKey);
     }, [openAiKey]);
 
     return <>
         {
-            data === 'Loading...' ? <></> : <>
+            restaurantDescription === 'Loading...' ? <></> : <>
                 <Typography variant="h6" gutterBottom>
                     Prologue
                 </Typography>
@@ -59,7 +49,7 @@ export function ShowText() {
         }
         
         <Typography sx={{marginBottom: '1rem'}} variant="body1" gutterBottom>
-            {data === '' ? 'Ackward silence...' : data}
+            {restaurantDescription === '' ? 'The restaurant looks decent.' : restaurantDescription}
         </Typography>
         <Button sx={{marginLeft: 1}} variant="contained" onClick={gotoNextScreen}>Continue</Button>
     </>;
