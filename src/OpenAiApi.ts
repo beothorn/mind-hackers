@@ -12,6 +12,10 @@ export const getCompletion = (openAiKey: string, query: string) => axios.post('h
         'Authorization': `Bearer ${openAiKey}`,
         'Content-Type': 'application/json'
     }
+}).then((result) => {
+    const text = result.data.choices[0].text.trim();
+    console.log({query, text});
+    return text;
 });
 
 export const listEngines = (openAiKey: string) => axios.get('https://api.openai.com/v1/engines', {

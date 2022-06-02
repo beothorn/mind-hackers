@@ -26,6 +26,8 @@ import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import FaceRetouchingNaturalIcon from '@mui/icons-material/FaceRetouchingNatural';
 import Box from '@mui/material/Box';
 
+import { PlayerAction } from '../gameStateSlice';
+
 const interactions = [
     {
         character: 'Waitress',
@@ -36,10 +38,12 @@ const interactions = [
                     {
                         name: 'Food',
                         icon: <FastfoodIcon />,
+                        playerAction: 'waitress:order:food' as PlayerAction,
                     },
                     {
                         name: 'Drink',
                         icon: <SportsBarIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                 ]
             },
@@ -49,14 +53,17 @@ const interactions = [
                     {
                         name: 'Bill',
                         icon: <AttachMoneyIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Bathroom',
                         icon: <WcIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Employees Bathroom key',
                         icon: <KeyIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                 ]
             },
@@ -66,18 +73,22 @@ const interactions = [
                     {
                         name: 'Service',
                         icon: <LocalDiningIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Waitress',
                         icon: <WomanIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Restaurant',
                         icon: <RestaurantIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Food',
                         icon: <SetMealIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                 ]
             },
@@ -87,18 +98,22 @@ const interactions = [
                     {
                         name: 'Service',
                         icon: <LocalDiningIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Waitress',
                         icon: <WomanIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Restaurant',
                         icon: <RestaurantIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Food',
                         icon: <SetMealIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                 ]
             }
@@ -113,10 +128,12 @@ const interactions = [
                     {
                         name: 'To pay for the dinner',
                         icon: <AttachMoneyIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'To give the waitress a good tip',
                         icon: <MonetizationOnIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                 ]
             },
@@ -126,38 +143,47 @@ const interactions = [
                     {
                         name: 'Boats',
                         icon: <DirectionsBoatIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Cars',
                         icon: <DirectionsCarIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Photography',
                         icon: <PhotoCameraIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Computers',
                         icon: <ComputerIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Pets',
                         icon: <PetsIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Tv',
                         icon: <TvIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Weather',
                         icon: <CloudIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Food',
                         icon: <FastfoodIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Drink',
                         icon: <SportsBarIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                 ]
             },
@@ -167,14 +193,17 @@ const interactions = [
                     {
                         name: 'Intelligence',
                         icon: <PsychologyIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Appearance',
                         icon: <FaceRetouchingNaturalIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                     {
                         name: 'Personality',
                         icon: <EmojiEmotionsIcon />,
+                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
                     },
                 ]
             },
@@ -183,6 +212,8 @@ const interactions = [
 ]
 
 export function SelectAction() {
+
+
 
     return <Box sx={{ bgcolor: 'background.paper' }}>
         <List

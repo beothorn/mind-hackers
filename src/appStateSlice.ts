@@ -5,7 +5,7 @@ import type { RootState } from './store'
 
 import { listEngines, getCompletion } from './OpenAiApi'
 
-export type AppScreen = 'testOpenAiToken' | 'presentation' | 'selectAction' | 'showText' | 'showIntro'
+export type AppScreen = 'testOpenAiToken' | 'presentation' | 'selectAction' | 'showText' | 'showIntro' | 'error'
 
 type AppState = {
   openAiKey: string,
@@ -19,7 +19,7 @@ const initialState: AppState = {
   restaurantDescription: 'Loading...',
 }
 
-export const counterSlice = createSlice({
+export const appStateSlice = createSlice({
   name: 'appState',
   initialState,
   reducers: {
@@ -35,7 +35,7 @@ export const counterSlice = createSlice({
   },
 })
 
-export const { setOpenAiKey, setScreen } = counterSlice.actions
+export const { setOpenAiKey, setScreen } = appStateSlice.actions
 
 export const selectScreen = (state: RootState) => state.appState.currentScreen
 export const selectOpenAiKey = (state: RootState) => state.appState.openAiKey
@@ -54,15 +54,18 @@ export async function dispatchActionCheckOpenAiKey(dispatch: Dispatch<AnyAction>
         dispatch(actionSetScreen('showIntro'));
       })
     })
-    .catch(() => dispatch(actionSetScreen('presentation')));
+    .catch(() => dispatch(actionSetScreen('error')));
 }
 
 export async function dispatchActionQueryRestaurantDescription(dispatch: Dispatch<AnyAction>, openAiKey: string) {
   const openAiQuery = `You were invited to dinner by your friend Jonas. The restaurant is small but looks nice. I will try to describe this restaurant:`;
 
   getCompletion(openAiKey, openAiQuery)
-    .then((result) => dispatch(actionSetRestaurantDescription(result.data.choices[0].text)))
-    .catch(() => dispatch(actionSetScreen('presentation')));
+    .then((result) => dispatch(actionSetRestaurantDescription(result)))
+    .catch((e) =>{
+      console.error(e);
+      dispatch(actionSetScreen('error'));
+    });
 }
 
-export default counterSlice.reducer
+export default appStateSlice.reducer

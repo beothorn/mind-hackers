@@ -7,18 +7,31 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
+import { useAppSelector, useAppDispatch } from '../hooks'
+import { selectOpenAiKey } from '../appStateSlice';
+import { PlayerAction, dispatchPlayerAction, selectGameState } from '../gameStateSlice';
+
 type Option = {
     name: string,
-    icon: any
+    icon: any,
+    playerAction: PlayerAction,
 }
 
 export function ExpandableList({action, options}: {action: string, options: Option[]}) {
+
+    const openAiKey = useAppSelector(selectOpenAiKey);
+    const gameState = useAppSelector(selectGameState);
+    const dispatch = useAppDispatch()
 
     const [open, setOpen] = React.useState(false);
 
     const handleClick = () => {
         setOpen(!open);
     };
+
+    const handleOptionClick = (playerAction: PlayerAction) => {
+        dispatchPlayerAction(dispatch, gameState, openAiKey, playerAction);
+    }
 
     return <List>
         <ListItemButton sx={{ pl: 8 }} onClick={handleClick}>
@@ -28,7 +41,7 @@ export function ExpandableList({action, options}: {action: string, options: Opti
         <Collapse in={open} timeout="auto" unmountOnExit>
             <List>
                 {
-                    options.map( o => <ListItemButton key={action+o.name} sx={{ pl: 12 }}>
+                    options.map( o => <ListItemButton onClick={() => handleOptionClick(o.playerAction)}  key={action+o.name} sx={{ pl: 12 }}>
                         <ListItemIcon>
                             {o.icon}
                         </ListItemIcon>

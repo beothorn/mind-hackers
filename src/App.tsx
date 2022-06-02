@@ -5,6 +5,7 @@ import { ShowIntro } from './showIntro/ShowIntro';
 import { SelectAction } from './selectAction/SelectAction';
 import { ShowText } from './showText/ShowText';
 import { TestOpenAiToken } from './testOpenAiToken/TestOpenAiToken';
+import { ErrorScreen } from './errorScreen/ErrorScreen';
 
 import { useAppSelector } from './hooks'
 import { selectScreen } from './appStateSlice';
@@ -30,6 +31,9 @@ export function App() {
             break;
         case 'testOpenAiToken':
             currentScreenComponent = <TestOpenAiToken />;
+            break;
+        case 'error':
+            currentScreenComponent = <ErrorScreen />;
             break;
     }
 

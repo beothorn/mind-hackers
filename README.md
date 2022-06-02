@@ -127,6 +127,19 @@ There is a fixed list of possible interactions, but you can insert a thought ins
 
 The insertion is a sentence of maximum 5 words and will work only sometimes.
 
+## Game loop
+
+- Read action
+- Render state as text
+- If action has an outcome (ex: success or failure)
+  - Append action to text
+  - Append yes/no question to outcome
+- Append action to text, if action has outcome also append it. This is the final text.
+- Ask for narration
+- Print only narration
+- For each state, send final text and a yes/no question, update the state accordingly
+- Go back to read action
+
 ## Characters
 - Player
 - Waitress
@@ -148,7 +161,6 @@ On Player:
   Trust: int: 0 // scale from 0 to 10, interactions can increase this value
   
 On Friend:
-  ThinksIsAnEmployee: boolean = false
   Trust: int: 0 // scale from 0 to 10, interactions can increase this value
 ```
 
