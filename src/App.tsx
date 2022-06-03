@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { Presentation } from './presentation/Presentation';
 import { ShowIntro } from './showIntro/ShowIntro';
@@ -7,14 +7,31 @@ import { ShowText } from './showText/ShowText';
 import { TestOpenAiToken } from './testOpenAiToken/TestOpenAiToken';
 import { ErrorScreen } from './errorScreen/ErrorScreen';
 
-import { useAppSelector } from './hooks'
-import { selectScreen } from './appStateSlice';
+import { useAppSelector, useAppDispatch } from './hooks'
+import { selectScreen, selectMessages, actionRemoveMessage } from './appStateSlice';
 
 import Box from '@mui/material/Box';
+import { useSnackbar } from 'notistack';
 
 export function App() {
 
     const currentScreen = useAppSelector(selectScreen);
+    const messages = useAppSelector(selectMessages);
+    const dispatch = useAppDispatch()
+
+    const { enqueueSnackbar } = useSnackbar();
+
+    useEffect(() => {
+        for(const message of messages) {
+            dispatch(actionRemoveMessage(message));
+            enqueueSnackbar(message, {
+                variant: 'info',
+                key: message,
+                autoHideDuration: 2000,
+            });
+        }
+    }, [messages]);
+
     let currentScreenComponent = <></>;
     switch (currentScreen) {
         case 'presentation':
@@ -38,6 +55,6 @@ export function App() {
     }
 
     return <Box sx={{ padding: '1rem', bgcolor: 'background.paper' }}>
-        {currentScreenComponent}
-    </Box>;
+            {currentScreenComponent}
+        </Box>;
 }

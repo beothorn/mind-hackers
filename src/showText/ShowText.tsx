@@ -19,8 +19,10 @@ export function ShowText() {
     });
 
     return <>
+        {lastText === '' ? 'Ackward silence...' : lastText.split('\n').map((line, i) => 
+            <Typography variant="body1" gutterBottom key={i}>{line}</Typography>
+        )}
         <Typography sx={{marginBottom: '1rem'}} variant="body1" gutterBottom>
-            {lastText === '' ? 'Ackward silence...' : lastText}
         </Typography>
         <Button sx={{marginLeft: 1}} variant="contained" onClick={gotoNextScreen}>Continue</Button>
     </>;

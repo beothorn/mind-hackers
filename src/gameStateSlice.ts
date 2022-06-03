@@ -1,5 +1,7 @@
 import { Dispatch, PayloadAction, AnyAction, createSlice } from '@reduxjs/toolkit'
-import { actionSetScreen } from './appStateSlice'
+import { batch } from 'react-redux'
+
+import { actionSetScreen, actionAddMessage } from './appStateSlice'
 
 import type { RootState } from './store'
 
@@ -66,10 +68,13 @@ export const gameStateSlice = createSlice({
     initialState,
     reducers: {
         setPlayerHasBathroomKey: (state: GameState, action: PayloadAction<boolean>) => {
-          state.player.hasBathroomKey = action.payload;
+            state.player.hasBathroomKey = action.payload;
+        },
+        increaseWaitressTrustOnPlayer: (state: GameState) => {
+            state.waitress.player.trust+= 1;
         },
         setLastText: (state: GameState, action: PayloadAction<string>) => {
-          state.lastText = action.payload;
+            state.lastText = action.payload;
         },
     },
 })
@@ -78,6 +83,7 @@ export const selectGameState = (state: RootState) => state.gameState;
 export const selectLastText = (state: RootState) => state.gameState.lastText;
 
 export const actionSetPlayerHasBathroomKey = (hasBathroomKey: boolean) => ({type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey})
+export const actionIncreaseWaitressTrustOnPlayer = () => ({type: 'gameState/increaseWaitressTrustOnPlayer'})
 export const actionSetLastText = (text: string) => ({type: 'gameState/setLastText', payload: text})
 
 function trust(person1:string, person2:string, score: number): string{
@@ -132,24 +138,62 @@ function renderStateAsText(gameState: GameState): string {
     On this restaurant you pay the bill at the end of your meal.`;
 }
 
-export type PlayerAction = 'waitress:order:food' | 'NOT_IMPLEMENTED'
+export type PlayerAction = 'waitress:order:food' | 'waitress:order:drink' | 'NOT_IMPLEMENTED'
 
 function orderFood(
     dispatch: Dispatch<AnyAction>, 
     openAiKey: string,
     stateAsText: string
 ){
+    interactWithWaitress(
+        dispatch, 
+        openAiKey, 
+        stateAsText, 
+        'You call the waitress to order food. This is how it goes:'
+    );
+}
+
+function orderDrink(
+    dispatch: Dispatch<AnyAction>, 
+    openAiKey: string,
+    stateAsText: string
+){
+    interactWithWaitress(
+        dispatch, 
+        openAiKey, 
+        stateAsText, 
+        'You call the waitress to order drinks. This is how it goes:'
+    );
+}
+
+function interactWithWaitress(
+    dispatch: Dispatch<AnyAction>, 
+    openAiKey: string,
+    stateAsText: string,
+    interaction: string
+){
     dispatch(actionSetScreen('showText'));
 
-    const openAiQuery = `${stateAsText} 
-    You call the waitress to order food. This is how it goes:`;
+    const openAiQuery = `${stateAsText} \n${interaction}`;
     
         getCompletion(openAiKey, openAiQuery)
         .then((textResult) => {
-            getCompletion(openAiKey, `${stateAsText} ${textResult}. Did the waitress gave you the key to the employees bathroom?`)
+            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid the waitress gave you the key to the employees bathroom, yes or no?`)
                 .then((answer) => {
                     if(answer.toLocaleLowerCase().includes('yes')){
-                        dispatch(actionSetPlayerHasBathroomKey(true));
+                        batch(() => {
+                            dispatch(actionSetPlayerHasBathroomKey(true));
+                            dispatch(actionAddMessage('You now you have the key to the employees bathroom.'));
+                        })
+                    }
+                });
+            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDoes the waitress trust you, yes or no?`)
+                .then((answer) => {
+                    if(answer.toLocaleLowerCase().includes('yes')){
+                        batch(() => {
+                            dispatch(actionIncreaseWaitressTrustOnPlayer());
+                            dispatch(actionAddMessage('You gained more trust from the waitress.'));
+                        })
                     }
                 });
             dispatch(actionSetLastText(textResult));
@@ -180,6 +224,13 @@ export async function dispatchPlayerAction(
     switch(action){
         case 'waitress:order:food':
             orderFood(
+                dispatch,
+                openAiKey,
+                stateAsText
+            );
+            break;
+        case 'waitress:order:drink':
+            orderDrink(
                 dispatch,
                 openAiKey,
                 stateAsText

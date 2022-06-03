@@ -43,7 +43,7 @@ const interactions = [
                     {
                         name: 'Drink',
                         icon: <SportsBarIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:order:drink' as PlayerAction,
                     },
                 ]
             },

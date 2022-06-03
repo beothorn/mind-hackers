@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-export const getCompletion = (openAiKey: string, query: string) => axios.post('https://api.openai.com/v1/engines/text-davinci-002/completions', {
+const openAiUrl = 'https://api.openai.com/v1';
+const engine = 'text-davinci-002';
+
+export const getCompletion = (openAiKey: string, query: string) => axios.post(`${openAiUrl}/engines/${engine}/completions`, {
     "prompt": query,
     "max_tokens": 256,
     "temperature": 0.9,
@@ -18,7 +21,7 @@ export const getCompletion = (openAiKey: string, query: string) => axios.post('h
     return text;
 });
 
-export const listEngines = (openAiKey: string) => axios.get('https://api.openai.com/v1/engines', {
+export const listEngines = (openAiKey: string) => axios.get(`${openAiUrl}/engines`, {
     headers: {
         'Authorization': `Bearer ${openAiKey}`,
         'Content-Type': 'application/json'
