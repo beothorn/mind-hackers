@@ -133,8 +133,8 @@ function renderStateAsText(gameState: GameState): string {
 
     return `${whoHasTheBathroomKey} 
     ${waitressThinksPlayerIsAnEmployee}
-    ${trust('The waitress', 'you', gameState.waitress.player.trust)}}
-    ${trust('The waitress', 'Jonas', gameState.waitress.player.trust)}}
+    ${trust('The waitress', 'you', gameState.waitress.player.trust)}
+    ${trust('The waitress', 'Jonas', gameState.waitress.player.trust)}
     ${friendWillPayForDinner}
     ${friendWillGiveAGoodTip}
     ${friendLikes}
