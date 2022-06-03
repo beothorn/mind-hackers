@@ -72,6 +72,11 @@ export const gameStateSlice = createSlice({
         },
         increaseWaitressTrustOnPlayer: (state: GameState) => {
             state.waitress.player.trust+= 1;
+            state.waitress.player.trust = state.waitress.player.trust > 10 ? 10: state.waitress.player.trust;
+        },
+        decreaseWaitressTrustOnPlayer: (state: GameState) => {
+            state.waitress.player.trust-= 1;
+            state.waitress.player.trust = state.waitress.player.trust < 0 ? 0: state.waitress.player.trust;
         },
         setLastText: (state: GameState, action: PayloadAction<string>) => {
             state.lastText = action.payload;
@@ -84,6 +89,7 @@ export const selectLastText = (state: RootState) => state.gameState.lastText;
 
 export const actionSetPlayerHasBathroomKey = (hasBathroomKey: boolean) => ({type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey})
 export const actionIncreaseWaitressTrustOnPlayer = () => ({type: 'gameState/increaseWaitressTrustOnPlayer'})
+export const actionDecreaseWaitressTrustOnPlayer = () => ({type: 'gameState/decreaseWaitressTrustOnPlayer'})
 export const actionSetLastText = (text: string) => ({type: 'gameState/setLastText', payload: text})
 
 function trust(person1:string, person2:string, score: number): string{
@@ -138,39 +144,27 @@ function renderStateAsText(gameState: GameState): string {
     On this restaurant you pay the bill at the end of your meal.`;
 }
 
-export type PlayerAction = 'waitress:order:food' | 'waitress:order:drink' | 'NOT_IMPLEMENTED'
-
-function orderFood(
-    dispatch: Dispatch<AnyAction>, 
-    openAiKey: string,
-    stateAsText: string
-){
-    interactWithWaitress(
-        dispatch, 
-        openAiKey, 
-        stateAsText, 
-        'You call the waitress to order food. This is how it goes:'
-    );
-}
-
-function orderDrink(
-    dispatch: Dispatch<AnyAction>, 
-    openAiKey: string,
-    stateAsText: string
-){
-    interactWithWaitress(
-        dispatch, 
-        openAiKey, 
-        stateAsText, 
-        'You call the waitress to order drinks. This is how it goes:'
-    );
-}
+export type PlayerAction = 'waitress:order:food' | 
+    'waitress:order:drink' | 
+    'waitress:ask:bill' | 
+    'waitress:ask:bathroom' |
+    'waitress:ask:employeeBathroom' |
+    'waitress:compliment:service' |
+    'waitress:compliment:waitress' |
+    'waitress:compliment:restaurant' |
+    'waitress:compliment:food' |
+    'waitress:complain:service' |
+    'waitress:complain:waitress' |
+    'waitress:complain:restaurant' |
+    'waitress:complain:food' |
+    'NOT_IMPLEMENTED'
 
 function interactWithWaitress(
     dispatch: Dispatch<AnyAction>, 
     openAiKey: string,
     stateAsText: string,
-    interaction: string
+    interaction: string,
+    askKey: boolean
 ){
     dispatch(actionSetScreen('showText'));
 
@@ -178,7 +172,8 @@ function interactWithWaitress(
     
         getCompletion(openAiKey, openAiQuery)
         .then((textResult) => {
-            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid the waitress gave you the key to the employees bathroom, yes or no?`)
+            if(askKey){
+                getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid the waitress gave you the key to the employees bathroom, yes or no?`)
                 .then((answer) => {
                     if(answer.toLocaleLowerCase().includes('yes')){
                         batch(() => {
@@ -187,18 +182,49 @@ function interactWithWaitress(
                         })
                     }
                 });
-            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDoes the waitress trust you, yes or no?`)
+            }
+            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDoes the waitress liked what you said, yes or no?`)
                 .then((answer) => {
                     if(answer.toLocaleLowerCase().includes('yes')){
                         batch(() => {
                             dispatch(actionIncreaseWaitressTrustOnPlayer());
                             dispatch(actionAddMessage('You gained more trust from the waitress.'));
                         })
+                    }else{
+                        getCompletion(openAiKey, `${stateAsText} ${textResult}.\nIs the waitress annoyed by what you said, yes or no?`)
+                            .then((answer) => {
+                                if(answer.toLocaleLowerCase().includes('yes')){
+                                    batch(() => {
+                                        dispatch(actionIncreaseWaitressTrustOnPlayer());
+                                        dispatch(actionAddMessage('The waitress is annoyed by this interaction.'));
+                                    })
+                                }
+                            });
                     }
                 });
             dispatch(actionSetLastText(textResult));
         })
         .catch(() => dispatch(actionSetScreen('error')));
+}
+
+type Interactions = {
+    [key in PlayerAction as string]: string;
+  };
+
+const interactions: Interactions = {
+    "waitress:order:food": 'You call the waitress to order food.',
+    "waitress:order:drink": 'You call the waitress to order drinks.',
+    "waitress:ask:bill": 'You call the waitress and asks for the bill.',
+    "waitress:ask:bathroom": 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees.',
+    "waitress:ask:employeeBathroom": 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key.',
+    "waitress:compliment:service": 'You are very happy with the service and decides to give the waitress a compliment on her service.',
+    "waitress:compliment:waitress": 'You decide to compliment the waitress on her wonderfull service.',
+    "waitress:compliment:restaurant": 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant.',
+    "waitress:compliment:food": 'You decide to call the waitress to tell her you really like the food.',
+    "waitress:complain:service": 'You are dissatisfied with the service and decides to complain to the waitress.',
+    "waitress:complain:waitress": 'You call the waitress to complain about her and tell her how awfull she is.',
+    "waitress:complain:restaurant": 'You hated this restaurant and decides to call the waitress to let her know about it.',
+    "waitress:complain:food": 'You di not liked the food and decides to call the waitress to let her know about it.',
 }
 
 export async function dispatchPlayerAction(
@@ -221,22 +247,14 @@ export async function dispatchPlayerAction(
 */
     const stateAsText = renderStateAsText(currentState);
     
-    switch(action){
-        case 'waitress:order:food':
-            orderFood(
-                dispatch,
-                openAiKey,
-                stateAsText
-            );
-            break;
-        case 'waitress:order:drink':
-            orderDrink(
-                dispatch,
-                openAiKey,
-                stateAsText
-            );
-            break;
-    }
+    let interaction = interactions[action];
+    interactWithWaitress(
+        dispatch, 
+        openAiKey, 
+        stateAsText, 
+        interaction + ' This is how it goes:\n',
+        action === 'waitress:ask:employeeBathroom'
+    );
 }
 
 export default gameStateSlice.reducer

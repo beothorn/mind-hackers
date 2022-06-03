@@ -53,17 +53,17 @@ const interactions = [
                     {
                         name: 'Bill',
                         icon: <AttachMoneyIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:ask:bill' as PlayerAction,
                     },
                     {
                         name: 'Bathroom',
                         icon: <WcIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:ask:bathroom' as PlayerAction,
                     },
                     {
                         name: 'Employees Bathroom key',
                         icon: <KeyIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:ask:employeeBathroom' as PlayerAction,
                     },
                 ]
             },
@@ -73,22 +73,22 @@ const interactions = [
                     {
                         name: 'Service',
                         icon: <LocalDiningIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:compliment:service' as PlayerAction,
                     },
                     {
                         name: 'Waitress',
                         icon: <WomanIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:compliment:waitress' as PlayerAction,
                     },
                     {
                         name: 'Restaurant',
                         icon: <RestaurantIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:compliment:restaurant' as PlayerAction,
                     },
                     {
                         name: 'Food',
                         icon: <SetMealIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:compliment:food' as PlayerAction,
                     },
                 ]
             },
@@ -98,22 +98,22 @@ const interactions = [
                     {
                         name: 'Service',
                         icon: <LocalDiningIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:complain:service' as PlayerAction,
                     },
                     {
                         name: 'Waitress',
                         icon: <WomanIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:complain:waitress' as PlayerAction,
                     },
                     {
                         name: 'Restaurant',
                         icon: <RestaurantIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:complain:restaurant' as PlayerAction,
                     },
                     {
                         name: 'Food',
                         icon: <SetMealIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'waitress:complain:food' as PlayerAction,
                     },
                 ]
             }
