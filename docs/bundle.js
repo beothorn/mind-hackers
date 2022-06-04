@@ -69561,7 +69561,11 @@ function ErrorScreen() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "actionDecreaseFriendTrustOnPlayer": () => (/* binding */ actionDecreaseFriendTrustOnPlayer),
 /* harmony export */   "actionDecreaseWaitressTrustOnPlayer": () => (/* binding */ actionDecreaseWaitressTrustOnPlayer),
+/* harmony export */   "actionFriendPaysForDinner": () => (/* binding */ actionFriendPaysForDinner),
+/* harmony export */   "actionFriendWillGiveAGoodTip": () => (/* binding */ actionFriendWillGiveAGoodTip),
+/* harmony export */   "actionIncreaseFriendTrustOnPlayer": () => (/* binding */ actionIncreaseFriendTrustOnPlayer),
 /* harmony export */   "actionIncreaseWaitressTrustOnPlayer": () => (/* binding */ actionIncreaseWaitressTrustOnPlayer),
 /* harmony export */   "actionSetLastText": () => (/* binding */ actionSetLastText),
 /* harmony export */   "actionSetPlayerHasBathroomKey": () => (/* binding */ actionSetPlayerHasBathroomKey),
@@ -69632,8 +69636,6 @@ var initialState = {
     friend: {
         willPayForDinner: false,
         willGiveAGoodTip: false,
-        likes: ['boats', 'cars', 'photography'],
-        dislikes: ['computers', 'pets', 'tv'],
         player: {
             trust: 5,
         },
@@ -69660,6 +69662,20 @@ var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlic
         setLastText: function (state, action) {
             state.lastText = action.payload;
         },
+        friendPaysForDinner: function (state) {
+            state.friend.willPayForDinner = true;
+        },
+        friendWillGiveAGoodTip: function (state) {
+            state.friend.willGiveAGoodTip = true;
+        },
+        increaseFriendTrustOnPlayer: function (state) {
+            state.friend.player.trust += 1;
+            state.friend.player.trust = state.friend.player.trust > 10 ? 10 : state.friend.player.trust;
+        },
+        decreaseFriendTrustOnPlayer: function (state) {
+            state.friend.player.trust -= 1;
+            state.friend.player.trust = state.friend.player.trust < 0 ? 0 : state.friend.player.trust;
+        },
     },
 });
 var selectGameState = function (state) { return state.gameState; };
@@ -69667,6 +69683,10 @@ var selectLastText = function (state) { return state.gameState.lastText; };
 var actionSetPlayerHasBathroomKey = function (hasBathroomKey) { return ({ type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey }); };
 var actionIncreaseWaitressTrustOnPlayer = function () { return ({ type: 'gameState/increaseWaitressTrustOnPlayer' }); };
 var actionDecreaseWaitressTrustOnPlayer = function () { return ({ type: 'gameState/decreaseWaitressTrustOnPlayer' }); };
+var actionFriendPaysForDinner = function () { return ({ type: 'gameState/friendPaysForDinner' }); };
+var actionFriendWillGiveAGoodTip = function () { return ({ type: 'gameState/friendWillGiveAGoodTip' }); };
+var actionIncreaseFriendTrustOnPlayer = function () { return ({ type: 'gameState/increaseFriendTrustOnPlayer' }); };
+var actionDecreaseFriendTrustOnPlayer = function () { return ({ type: 'gameState/decreaseFriendTrustOnPlayer' }); };
 var actionSetLastText = function (text) { return ({ type: 'gameState/setLastText', payload: text }); };
 function trust(person1, person2, score) {
     if (score > 9) {
@@ -69676,7 +69696,7 @@ function trust(person1, person2, score) {
         return "".concat(person1, " trust ").concat(person2, ".");
     }
     if (score > 3) {
-        return "".concat(person1, " does not know ").concat(person2, ".");
+        return "".concat(person1, " is not very familiar with ").concat(person2, ".");
     }
     return "".concat(person1, " do not trust ").concat(person2);
 }
@@ -69697,17 +69717,15 @@ function renderStateAsText(gameState) {
     if (gameState.friend.willGiveAGoodTip) {
         friendWillGiveAGoodTip = 'Jonas wants to give the waitress a very good tip.';
     }
-    var friendLikes = "Jonas likes to talk about ".concat(gameState.friend.likes.join(', '), ".");
-    var friendDislikes = "Jonas does not like conversations about ".concat(gameState.friend.dislikes.join(', '), ".");
     var friendSatisfaction = "Jonas is ".concat(gameState.friend.waitress.isSatisfiedWithTheService ? 'satisfied' : 'not satisfied', " with the service.");
-    return "".concat(whoHasTheBathroomKey, " \n    ").concat(waitressThinksPlayerIsAnEmployee, "\n    ").concat(trust('The waitress', 'you', gameState.waitress.player.trust), "}\n    ").concat(trust('The waitress', 'Jonas', gameState.waitress.player.trust), "}\n    ").concat(friendWillPayForDinner, "\n    ").concat(friendWillGiveAGoodTip, "\n    ").concat(friendLikes, "\n    ").concat(friendDislikes, "\n    ").concat(trust('Jonas', 'you', gameState.friend.player.trust), "}\n    ").concat(friendSatisfaction, "\n    On this restaurant you pay the bill at the end of your meal.");
+    return "".concat(whoHasTheBathroomKey, " \n    ").concat(waitressThinksPlayerIsAnEmployee, "\n    ").concat(trust('The waitress', 'you', gameState.waitress.player.trust), "\n    ").concat(trust('The waitress', 'Jonas', gameState.waitress.player.trust), "\n    ").concat(friendWillPayForDinner, "\n    ").concat(friendWillGiveAGoodTip, "\n    ").concat(trust('Jonas', 'you', gameState.friend.player.trust), "\n    ").concat(friendSatisfaction, "\n    On this restaurant you pay the bill at the end of your meal.");
 }
-function interactWithWaitress(dispatch, openAiKey, stateAsText, interaction, askKey) {
+function interactWithWaitress(dispatch, openAiKey, stateAsText, interaction, action) {
     dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('showText'));
     var openAiQuery = "".concat(stateAsText, " \n").concat(interaction);
     (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery)
         .then(function (textResult) {
-        if (askKey) {
+        if (action === 'waitress:ask:employeeBathroom') {
             (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, "".concat(stateAsText, " ").concat(textResult, ".\nDid the waitress gave you the key to the employees bathroom, yes or no?"))
                 .then(function (answer) {
                 if (answer.toLocaleLowerCase().includes('yes')) {
@@ -69731,7 +69749,7 @@ function interactWithWaitress(dispatch, openAiKey, stateAsText, interaction, ask
                     .then(function (answer) {
                     if (answer.toLocaleLowerCase().includes('yes')) {
                         (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                            dispatch(actionIncreaseWaitressTrustOnPlayer());
+                            dispatch(actionDecreaseWaitressTrustOnPlayer());
                             dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('The waitress is annoyed by this interaction.'));
                         });
                     }
@@ -69742,28 +69760,101 @@ function interactWithWaitress(dispatch, openAiKey, stateAsText, interaction, ask
     })
         .catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
 }
-var interactions = {
-    "waitress:order:food": 'You call the waitress to order food.',
-    "waitress:order:drink": 'You call the waitress to order drinks.',
-    "waitress:ask:bill": 'You call the waitress and asks for the bill.',
-    "waitress:ask:bathroom": 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees.',
-    "waitress:ask:employeeBathroom": 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key.',
-    "waitress:compliment:service": 'You are very happy with the service and decides to give the waitress a compliment on her service.',
-    "waitress:compliment:waitress": 'You decide to compliment the waitress on her wonderfull service.',
-    "waitress:compliment:restaurant": 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant.',
-    "waitress:compliment:food": 'You decide to call the waitress to tell her you really like the food.',
-    "waitress:complain:service": 'You are dissatisfied with the service and decides to complain to the waitress.',
-    "waitress:complain:waitress": 'You call the waitress to complain about her and tell her how awfull she is.',
-    "waitress:complain:restaurant": 'You hated this restaurant and decides to call the waitress to let her know about it.',
-    "waitress:complain:food": 'You di not liked the food and decides to call the waitress to let her know about it.',
+function interactWithFriend(dispatch, openAiKey, stateAsText, interaction, action) {
+    dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('showText'));
+    var openAiQuery = "".concat(stateAsText, " \n").concat(interaction);
+    (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery)
+        .then(function (textResult) {
+        if (action === 'friend:ask:payForDinner') {
+            (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, "".concat(stateAsText, " ").concat(textResult, ".\nDid Jonas agreed to pay for dinner, yes or no?"))
+                .then(function (answer) {
+                if (answer.toLocaleLowerCase().includes('yes')) {
+                    (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+                        dispatch(actionFriendPaysForDinner());
+                        dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas will pay the dinner.'));
+                    });
+                }
+            });
+        }
+        if (action === 'friend:ask:giveGoodTip') {
+            (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, "".concat(stateAsText, " ").concat(textResult, ".\nDid Jonas agreed to give the waitress a good tip, yes or no?"))
+                .then(function (answer) {
+                if (answer.toLocaleLowerCase().includes('yes')) {
+                    (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+                        dispatch(actionFriendWillGiveAGoodTip());
+                        dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas will give the waitress a good tip.'));
+                    });
+                }
+            });
+        }
+        (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, "".concat(stateAsText, " ").concat(textResult, ".\nDoes Jonas liked what you said, yes or no?"))
+            .then(function (answer) {
+            if (answer.toLocaleLowerCase().includes('yes')) {
+                (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+                    dispatch(actionIncreaseFriendTrustOnPlayer());
+                    dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('You gained more trust from Jonas.'));
+                });
+            }
+            else {
+                (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, "".concat(stateAsText, " ").concat(textResult, ".\nIs Jonas annoyed by what you said, yes or no?"))
+                    .then(function (answer) {
+                    if (answer.toLocaleLowerCase().includes('yes')) {
+                        (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+                            dispatch(actionDecreaseFriendTrustOnPlayer());
+                            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas is annoyed by this interaction.'));
+                        });
+                    }
+                });
+            }
+        });
+        dispatch(actionSetLastText(textResult));
+    })
+        .catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
+}
+var interactionsWithWaitress = {
+    'waitress:order:food': 'You call the waitress to order food.',
+    'waitress:order:drink': 'You call the waitress to order drinks.',
+    'waitress:ask:bill': 'You call the waitress and asks for the bill.',
+    'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees.',
+    'waitress:ask:employeeBathroom': 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key.',
+    'waitress:compliment:service': 'You are very happy with the service and decides to give the waitress a compliment on her service.',
+    'waitress:compliment:waitress': 'You decide to compliment the waitress on her wonderfull service.',
+    'waitress:compliment:restaurant': 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant.',
+    'waitress:compliment:food': 'You decide to call the waitress to tell her you really like the food.',
+    'waitress:complain:service': 'You are dissatisfied with the service and decides to complain to the waitress.',
+    'waitress:complain:waitress': 'You call the waitress to complain about her and tell her how awfull she is.',
+    'waitress:complain:restaurant': 'You hated this restaurant and decides to call the waitress to let her know about it.',
+    'waitress:complain:food': 'You did not liked the food and decides to call the waitress to let her know about it.',
+};
+var interactionsWithFriend = {
+    'friend:ask:payForDinner': 'You ask Jonas if he can pay the bill for the dinner.',
+    'friend:ask:giveGoodTip': 'You ask Jonas to give a good tip for the waitress.',
+    'friend:talk:boats': 'You start a conversation about boats with Jonas. Jonas really likes to talk about boats.',
+    'friend:talk:cars': 'You start a conversation about cars with Jonas. Jonas really likes to talk about cars.',
+    'friend:talk:photography': 'You start a conversation about photography with Jonas. Jonas really likes to talk about photography.',
+    'friend:talk:computers': 'You start a conversation about computers with Jonas. Jonas hates to talk about computers.',
+    'friend:talk:pets': 'You start a conversation about pets with Jonas. Jonas hates to talk about pets.',
+    'friend:talk:tv': 'You start a conversation about tv shows with Jonas. Jonas hates to talk about tv shows.',
+    'friend:talk:weather': 'You start a conversation about the weather with Jonas.',
+    'friend:talk:food': 'You start a conversation about the food from this restaurant with Jonas.',
+    'friend:talk:drink': 'You start a conversation about the drinks from this restaurant with Jonas.',
+    'friend:compliment:intelligence': 'You comliment Jonas on his intelligence.',
+    'friend:compliment:appearance': 'You comliment Jonas on his appearance.',
+    'friend:compliment:personality': 'You comliment Jonas on his personality.',
 };
 function dispatchPlayerAction(dispatch, currentState, openAiKey, action) {
     return __awaiter(this, void 0, void 0, function () {
-        var stateAsText, interaction;
+        var stateAsText, interaction, interaction;
         return __generator(this, function (_a) {
             stateAsText = renderStateAsText(currentState);
-            interaction = interactions[action];
-            interactWithWaitress(dispatch, openAiKey, stateAsText, interaction + ' This is how it goes:\n', action === 'waitress:ask:employeeBathroom');
+            if (action.startsWith('waitress')) {
+                interaction = interactionsWithWaitress[action];
+                interactWithWaitress(dispatch, openAiKey, stateAsText, interaction + ' This is how it goes:\n', action);
+            }
+            if (action.startsWith('friend')) {
+                interaction = interactionsWithFriend[action];
+                interactWithFriend(dispatch, openAiKey, stateAsText, interaction + ' This is how it goes:\n', action);
+            }
             return [2 /*return*/];
         });
     });
@@ -70132,12 +70223,12 @@ var interactions = [
                     {
                         name: 'To pay for the dinner',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_AttachMoney__WEBPACK_IMPORTED_MODULE_6__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:ask:payForDinner',
                     },
                     {
                         name: 'To give the waitress a good tip',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_MonetizationOn__WEBPACK_IMPORTED_MODULE_13__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:ask:giveGoodTip',
                     },
                 ]
             },
@@ -70147,47 +70238,47 @@ var interactions = [
                     {
                         name: 'Boats',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_DirectionsBoat__WEBPACK_IMPORTED_MODULE_14__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:boats',
                     },
                     {
                         name: 'Cars',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_DirectionsCar__WEBPACK_IMPORTED_MODULE_15__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:cars',
                     },
                     {
                         name: 'Photography',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_PhotoCamera__WEBPACK_IMPORTED_MODULE_16__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:photography',
                     },
                     {
                         name: 'Computers',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Computer__WEBPACK_IMPORTED_MODULE_17__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:computers',
                     },
                     {
                         name: 'Pets',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Pets__WEBPACK_IMPORTED_MODULE_18__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:pets',
                     },
                     {
                         name: 'Tv',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Tv__WEBPACK_IMPORTED_MODULE_19__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:tv',
                     },
                     {
                         name: 'Weather',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Cloud__WEBPACK_IMPORTED_MODULE_20__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:weather',
                     },
                     {
                         name: 'Food',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_4__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:food',
                     },
                     {
                         name: 'Drink',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_SportsBar__WEBPACK_IMPORTED_MODULE_5__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:talk:drink',
                     },
                 ]
             },
@@ -70197,17 +70288,17 @@ var interactions = [
                     {
                         name: 'Intelligence',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Psychology__WEBPACK_IMPORTED_MODULE_21__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:compliment:intelligence',
                     },
                     {
                         name: 'Appearance',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:compliment:appearance',
                     },
                     {
                         name: 'Personality',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_EmojiEmotions__WEBPACK_IMPORTED_MODULE_23__["default"], null),
-                        playerAction: 'NOT_IMPLEMENTED',
+                        playerAction: 'friend:compliment:personality',
                     },
                 ]
             },
@@ -70265,9 +70356,12 @@ function ShowIntro() {
                 react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
                 "Arriving at the restaurant you notice two things:"),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_3__["default"], { variant: "body1", gutterBottom: true }, "You really need to go to the bathroom."),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_3__["default"], { variant: "body1", gutterBottom: true }, "You also realised that you forgot to bring your wallet. You and Jonas arrive at te restaurant."),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_3__["default"], { variant: "body1", gutterBottom: true }, "You also realised that you forgot to bring your wallet. You and Jonas arrive at the restaurant."),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_3__["default"], { variant: "h6", gutterBottom: true }, "The restaurant")),
-        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_3__["default"], { sx: { marginBottom: '1rem' }, variant: "body1", gutterBottom: true }, restaurantDescription === '' ? 'The restaurant looks decent.' : restaurantDescription),
+        restaurantDescription === '' ? 'The restaurant looks decent.' : restaurantDescription.split('\n').map(function (line, i) {
+            return react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_3__["default"], { variant: "body1", gutterBottom: true, key: i }, line);
+        }),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_3__["default"], { sx: { marginBottom: '1rem' }, variant: "body1", gutterBottom: true }),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Button__WEBPACK_IMPORTED_MODULE_4__["default"], { sx: { marginLeft: 1 }, variant: "contained", onClick: gotoNextScreen }, "Continue"));
 }
 
