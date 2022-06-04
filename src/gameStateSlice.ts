@@ -24,8 +24,6 @@ type GameState = {
     friend: {
         willPayForDinner: boolean,
         willGiveAGoodTip: boolean,
-        likes: string[],
-        dislikes: string[],
         player: {
             trust: number, 
         },
@@ -52,8 +50,6 @@ const initialState: GameState = {
     friend: {
         willPayForDinner: false,
         willGiveAGoodTip: false,
-        likes: ['boats', 'cars', 'photography'],
-        dislikes: ['computers', 'pets', 'tv'],
         player: {
             trust: 5, 
         },
@@ -81,6 +77,20 @@ export const gameStateSlice = createSlice({
         setLastText: (state: GameState, action: PayloadAction<string>) => {
             state.lastText = action.payload;
         },
+        friendPaysForDinner: (state: GameState) => {
+            state.friend.willPayForDinner = true;
+        },
+        friendWillGiveAGoodTip: (state: GameState) => {
+            state.friend.willGiveAGoodTip = true;
+        },
+        increaseFriendTrustOnPlayer: (state: GameState) => {
+            state.friend.player.trust+= 1;
+            state.friend.player.trust = state.friend.player.trust > 10 ? 10: state.friend.player.trust;
+        },
+        decreaseFriendTrustOnPlayer: (state: GameState) => {
+            state.friend.player.trust-= 1;
+            state.friend.player.trust = state.friend.player.trust < 0 ? 0: state.friend.player.trust;
+        },
     },
 })
 
@@ -90,6 +100,10 @@ export const selectLastText = (state: RootState) => state.gameState.lastText;
 export const actionSetPlayerHasBathroomKey = (hasBathroomKey: boolean) => ({type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey})
 export const actionIncreaseWaitressTrustOnPlayer = () => ({type: 'gameState/increaseWaitressTrustOnPlayer'})
 export const actionDecreaseWaitressTrustOnPlayer = () => ({type: 'gameState/decreaseWaitressTrustOnPlayer'})
+export const actionFriendPaysForDinner = () => ({type: 'gameState/friendPaysForDinner'})
+export const actionFriendWillGiveAGoodTip = () => ({type: 'gameState/friendWillGiveAGoodTip'})
+export const actionIncreaseFriendTrustOnPlayer = () => ({type: 'gameState/increaseFriendTrustOnPlayer'})
+export const actionDecreaseFriendTrustOnPlayer = () => ({type: 'gameState/decreaseFriendTrustOnPlayer'})
 export const actionSetLastText = (text: string) => ({type: 'gameState/setLastText', payload: text})
 
 function trust(person1:string, person2:string, score: number): string{
@@ -100,7 +114,7 @@ function trust(person1:string, person2:string, score: number): string{
         return `${person1} trust ${person2}.`;
     }
     if(score > 3){
-        return `${person1} does not know ${person2}.`;
+        return `${person1} is not very familiar with ${person2}.`;
     }
     return `${person1} do not trust ${person2}`;
 }
@@ -126,9 +140,6 @@ function renderStateAsText(gameState: GameState): string {
         friendWillGiveAGoodTip = 'Jonas wants to give the waitress a very good tip.';
     }
 
-    const friendLikes =`Jonas likes to talk about ${gameState.friend.likes.join(', ')}.`;
-    const friendDislikes =`Jonas does not like conversations about ${gameState.friend.dislikes.join(', ')}.`;
-
     const friendSatisfaction = `Jonas is ${gameState.friend.waitress.isSatisfiedWithTheService? 'satisfied':'not satisfied'} with the service.`;
 
     return `${whoHasTheBathroomKey} 
@@ -137,9 +148,7 @@ function renderStateAsText(gameState: GameState): string {
     ${trust('The waitress', 'Jonas', gameState.waitress.player.trust)}
     ${friendWillPayForDinner}
     ${friendWillGiveAGoodTip}
-    ${friendLikes}
-    ${friendDislikes}
-    ${trust('Jonas', 'you', gameState.friend.player.trust)}}
+    ${trust('Jonas', 'you', gameState.friend.player.trust)}
     ${friendSatisfaction}
     On this restaurant you pay the bill at the end of your meal.`;
 }
@@ -157,14 +166,27 @@ export type PlayerAction = 'waitress:order:food' |
     'waitress:complain:waitress' |
     'waitress:complain:restaurant' |
     'waitress:complain:food' |
-    'NOT_IMPLEMENTED'
+    'friend:ask:payForDinner' |
+    'friend:ask:giveGoodTip' |
+    'friend:talk:boats' |
+    'friend:talk:cars' |
+    'friend:talk:photography' |
+    'friend:talk:computers' |
+    'friend:talk:pets' |
+    'friend:talk:tv' |
+    'friend:talk:weather' |
+    'friend:talk:food' |
+    'friend:talk:drink' |
+    'friend:compliment:intelligence' |
+    'friend:compliment:appearance' |
+    'friend:compliment:personality';
 
 function interactWithWaitress(
     dispatch: Dispatch<AnyAction>, 
     openAiKey: string,
     stateAsText: string,
     interaction: string,
-    askKey: boolean
+    action: string,
 ){
     dispatch(actionSetScreen('showText'));
 
@@ -172,7 +194,7 @@ function interactWithWaitress(
     
         getCompletion(openAiKey, openAiQuery)
         .then((textResult) => {
-            if(askKey){
+            if(action === 'waitress:ask:employeeBathroom'){
                 getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid the waitress gave you the key to the employees bathroom, yes or no?`)
                 .then((answer) => {
                     if(answer.toLocaleLowerCase().includes('yes')){
@@ -195,8 +217,67 @@ function interactWithWaitress(
                             .then((answer) => {
                                 if(answer.toLocaleLowerCase().includes('yes')){
                                     batch(() => {
-                                        dispatch(actionIncreaseWaitressTrustOnPlayer());
+                                        dispatch(actionDecreaseWaitressTrustOnPlayer());
                                         dispatch(actionAddMessage('The waitress is annoyed by this interaction.'));
+                                    })
+                                }
+                            });
+                    }
+                });
+            dispatch(actionSetLastText(textResult));
+        })
+        .catch(() => dispatch(actionSetScreen('error')));
+}
+
+function interactWithFriend(
+    dispatch: Dispatch<AnyAction>, 
+    openAiKey: string,
+    stateAsText: string,
+    interaction: string,
+    action: string,
+){
+    dispatch(actionSetScreen('showText'));
+
+    const openAiQuery = `${stateAsText} \n${interaction}`;
+    
+        getCompletion(openAiKey, openAiQuery)
+        .then((textResult) => {
+            if(action === 'friend:ask:payForDinner'){
+                getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid Jonas agreed to pay for dinner, yes or no?`)
+                .then((answer) => {
+                    if(answer.toLocaleLowerCase().includes('yes')){
+                        batch(() => {
+                            dispatch(actionFriendPaysForDinner());
+                            dispatch(actionAddMessage('Jonas will pay the dinner.'));
+                        })
+                    }
+                });
+            }
+            if(action === 'friend:ask:giveGoodTip'){
+                getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid Jonas agreed to give the waitress a good tip, yes or no?`)
+                .then((answer) => {
+                    if(answer.toLocaleLowerCase().includes('yes')){
+                        batch(() => {
+                            dispatch(actionFriendWillGiveAGoodTip());
+                            dispatch(actionAddMessage('Jonas will give the waitress a good tip.'));
+                        })
+                    }
+                });
+            }
+            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDoes Jonas liked what you said, yes or no?`)
+                .then((answer) => {
+                    if(answer.toLocaleLowerCase().includes('yes')){
+                        batch(() => {
+                            dispatch(actionIncreaseFriendTrustOnPlayer());
+                            dispatch(actionAddMessage('You gained more trust from Jonas.'));
+                        })
+                    }else{
+                        getCompletion(openAiKey, `${stateAsText} ${textResult}.\nIs Jonas annoyed by what you said, yes or no?`)
+                            .then((answer) => {
+                                if(answer.toLocaleLowerCase().includes('yes')){
+                                    batch(() => {
+                                        dispatch(actionDecreaseFriendTrustOnPlayer());
+                                        dispatch(actionAddMessage('Jonas is annoyed by this interaction.'));
                                     })
                                 }
                             });
@@ -211,20 +292,37 @@ type Interactions = {
     [key in PlayerAction as string]: string;
   };
 
-const interactions: Interactions = {
-    "waitress:order:food": 'You call the waitress to order food.',
-    "waitress:order:drink": 'You call the waitress to order drinks.',
-    "waitress:ask:bill": 'You call the waitress and asks for the bill.',
-    "waitress:ask:bathroom": 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees.',
-    "waitress:ask:employeeBathroom": 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key.',
-    "waitress:compliment:service": 'You are very happy with the service and decides to give the waitress a compliment on her service.',
-    "waitress:compliment:waitress": 'You decide to compliment the waitress on her wonderfull service.',
-    "waitress:compliment:restaurant": 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant.',
-    "waitress:compliment:food": 'You decide to call the waitress to tell her you really like the food.',
-    "waitress:complain:service": 'You are dissatisfied with the service and decides to complain to the waitress.',
-    "waitress:complain:waitress": 'You call the waitress to complain about her and tell her how awfull she is.',
-    "waitress:complain:restaurant": 'You hated this restaurant and decides to call the waitress to let her know about it.',
-    "waitress:complain:food": 'You di not liked the food and decides to call the waitress to let her know about it.',
+const interactionsWithWaitress: Interactions = {
+    'waitress:order:food': 'You call the waitress to order food.',
+    'waitress:order:drink': 'You call the waitress to order drinks.',
+    'waitress:ask:bill': 'You call the waitress and asks for the bill.',
+    'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees.',
+    'waitress:ask:employeeBathroom': 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key.',
+    'waitress:compliment:service': 'You are very happy with the service and decides to give the waitress a compliment on her service.',
+    'waitress:compliment:waitress': 'You decide to compliment the waitress on her wonderfull service.',
+    'waitress:compliment:restaurant': 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant.',
+    'waitress:compliment:food': 'You decide to call the waitress to tell her you really like the food.',
+    'waitress:complain:service': 'You are dissatisfied with the service and decides to complain to the waitress.',
+    'waitress:complain:waitress': 'You call the waitress to complain about her and tell her how awfull she is.',
+    'waitress:complain:restaurant': 'You hated this restaurant and decides to call the waitress to let her know about it.',
+    'waitress:complain:food': 'You did not liked the food and decides to call the waitress to let her know about it.',
+}
+
+const interactionsWithFriend: Interactions = {
+    'friend:ask:payForDinner': 'You ask Jonas if he can pay the bill for the dinner.',
+    'friend:ask:giveGoodTip': 'You ask Jonas to give a good tip for the waitress.',
+    'friend:talk:boats': 'You start a conversation about boats with Jonas. Jonas really likes to talk about boats.',
+    'friend:talk:cars': 'You start a conversation about cars with Jonas. Jonas really likes to talk about cars.',
+    'friend:talk:photography': 'You start a conversation about photography with Jonas. Jonas really likes to talk about photography.',
+    'friend:talk:computers': 'You start a conversation about computers with Jonas. Jonas hates to talk about computers.',
+    'friend:talk:pets': 'You start a conversation about pets with Jonas. Jonas hates to talk about pets.',
+    'friend:talk:tv': 'You start a conversation about tv shows with Jonas. Jonas hates to talk about tv shows.',
+    'friend:talk:weather': 'You start a conversation about the weather with Jonas.',
+    'friend:talk:food': 'You start a conversation about the food from this restaurant with Jonas.',
+    'friend:talk:drink': 'You start a conversation about the drinks from this restaurant with Jonas.',
+    'friend:compliment:intelligence': 'You comliment Jonas on his intelligence.',
+    'friend:compliment:appearance': 'You comliment Jonas on his appearance.',
+    'friend:compliment:personality': 'You comliment Jonas on his personality.',
 }
 
 export async function dispatchPlayerAction(
@@ -247,14 +345,26 @@ export async function dispatchPlayerAction(
 */
     const stateAsText = renderStateAsText(currentState);
     
-    let interaction = interactions[action];
-    interactWithWaitress(
-        dispatch, 
-        openAiKey, 
-        stateAsText, 
-        interaction + ' This is how it goes:\n',
-        action === 'waitress:ask:employeeBathroom'
-    );
+    if(action.startsWith('waitress')){
+        let interaction = interactionsWithWaitress[action];
+        interactWithWaitress(
+            dispatch, 
+            openAiKey, 
+            stateAsText, 
+            interaction + ' This is how it goes:\n',
+            action
+        );
+    }
+    if(action.startsWith('friend')){
+        let interaction = interactionsWithFriend[action];
+        interactWithFriend(
+            dispatch, 
+            openAiKey, 
+            stateAsText, 
+            interaction + ' This is how it goes:\n',
+            action
+        );
+    }
 }
 
 export default gameStateSlice.reducer

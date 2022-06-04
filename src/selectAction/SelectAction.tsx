@@ -128,12 +128,12 @@ const interactions = [
                     {
                         name: 'To pay for the dinner',
                         icon: <AttachMoneyIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:ask:payForDinner' as PlayerAction,
                     },
                     {
                         name: 'To give the waitress a good tip',
                         icon: <MonetizationOnIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:ask:giveGoodTip' as PlayerAction,
                     },
                 ]
             },
@@ -143,47 +143,47 @@ const interactions = [
                     {
                         name: 'Boats',
                         icon: <DirectionsBoatIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:boats' as PlayerAction,
                     },
                     {
                         name: 'Cars',
                         icon: <DirectionsCarIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:cars' as PlayerAction,
                     },
                     {
                         name: 'Photography',
                         icon: <PhotoCameraIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:photography' as PlayerAction,
                     },
                     {
                         name: 'Computers',
                         icon: <ComputerIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:computers' as PlayerAction,
                     },
                     {
                         name: 'Pets',
                         icon: <PetsIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:pets' as PlayerAction,
                     },
                     {
                         name: 'Tv',
                         icon: <TvIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:tv' as PlayerAction,
                     },
                     {
                         name: 'Weather',
                         icon: <CloudIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:weather' as PlayerAction,
                     },
                     {
                         name: 'Food',
                         icon: <FastfoodIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:food' as PlayerAction,
                     },
                     {
                         name: 'Drink',
                         icon: <SportsBarIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:talk:drink' as PlayerAction,
                     },
                 ]
             },
@@ -193,17 +193,17 @@ const interactions = [
                     {
                         name: 'Intelligence',
                         icon: <PsychologyIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:compliment:intelligence' as PlayerAction,
                     },
                     {
                         name: 'Appearance',
                         icon: <FaceRetouchingNaturalIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:compliment:appearance' as PlayerAction,
                     },
                     {
                         name: 'Personality',
                         icon: <EmojiEmotionsIcon />,
-                        playerAction: 'NOT_IMPLEMENTED' as PlayerAction,
+                        playerAction: 'friend:compliment:personality' as PlayerAction,
                     },
                 ]
             },

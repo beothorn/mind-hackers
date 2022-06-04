@@ -40,7 +40,7 @@ export function ShowIntro() {
                     You really need to go to the bathroom. 
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    You also realised that you forgot to bring your wallet. You and Jonas arrive at te restaurant.
+                    You also realised that you forgot to bring your wallet. You and Jonas arrive at the restaurant.
                 </Typography>
                 <Typography variant="h6" gutterBottom>
                     The restaurant
@@ -48,8 +48,11 @@ export function ShowIntro() {
             </>
         }
         
+        {restaurantDescription === '' ? 'The restaurant looks decent.' : restaurantDescription.split('\n').map((line, i) => 
+            <Typography variant="body1" gutterBottom key={i}>{line}</Typography>
+        )}
+
         <Typography sx={{marginBottom: '1rem'}} variant="body1" gutterBottom>
-            {restaurantDescription === '' ? 'The restaurant looks decent.' : restaurantDescription}
         </Typography>
         <Button sx={{marginLeft: 1}} variant="contained" onClick={gotoNextScreen}>Continue</Button>
     </>;
