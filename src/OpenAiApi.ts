@@ -21,6 +21,34 @@ export const getCompletion = (openAiKey: string, query: string) => axios.post(`$
     return text;
 });
 
+export const answerQuestion = (openAiKey: string, situation: string, question: string) => axios.post(`${openAiUrl}/engines/${engine}/completions`, {
+    "prompt": `===
+${situation}
+===
+From this scene:
+${question}(yes or no)
+`,
+    "max_tokens": 3,
+    "temperature": 0.9,
+    "top_p": 1,
+    "frequency_penalty": 0,
+    "presence_penalty": 0,
+}, {
+    headers: {
+        'Authorization': `Bearer ${openAiKey}`,
+        'Content-Type': 'application/json'
+    }
+}).then((result) => {
+    const text = result.data.choices[0].text.trim();
+    console.log({query: `===
+    ${situation}
+    ===
+    From this scene:
+    ${question}(yes or no)
+    `, text});
+    return text.toLocaleLowerCase().includes('yes');
+});
+
 export const listEngines = (openAiKey: string) => axios.get(`${openAiUrl}/engines`, {
     headers: {
         'Authorization': `Bearer ${openAiKey}`,

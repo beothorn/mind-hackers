@@ -4,7 +4,8 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 
 import { useAppSelector, useAppDispatch } from '../hooks'
-import { selectOpenAiKey, selectRestaurantDescription, actionSetScreen, dispatchActionQueryRestaurantDescription } from '../appStateSlice';
+import { selectOpenAiKey, actionSetScreen } from '../appStateSlice';
+import { selectRestaurantDescription, dispatchActionQueryRestaurantDescription } from '../gameStateSlice';
 
 export function ShowIntro() {
     const openAiKey = useAppSelector(selectOpenAiKey);
@@ -48,7 +49,7 @@ export function ShowIntro() {
             </>
         }
         
-        {restaurantDescription === '' ? 'The restaurant looks decent.' : restaurantDescription.split('\n').map((line, i) => 
+        {restaurantDescription === '' ? 'Loading...' : restaurantDescription.split('\n').map((line, i) => 
             <Typography variant="body1" gutterBottom key={i}>{line}</Typography>
         )}
 

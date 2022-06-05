@@ -5,10 +5,12 @@ import { actionSetScreen, actionAddMessage } from './appStateSlice'
 
 import type { RootState } from './store'
 
-import { getCompletion } from './OpenAiApi'
+import { getCompletion, answerQuestion } from './OpenAiApi'
 
 type GameState = {
     lastText: string,
+    restaurantDescription: string,
+    facts: string[],
     player: {
         hasBathroomKey: boolean,
     },
@@ -35,6 +37,8 @@ type GameState = {
 
 const initialState: GameState = {
     lastText: 'Loading...',
+    facts: [],
+    restaurantDescription: '',
     player: {
         hasBathroomKey: false,
     },
@@ -63,6 +67,9 @@ export const gameStateSlice = createSlice({
     name: 'gameState',
     initialState,
     reducers: {
+        setRestaurantDescription: (state: GameState, action: PayloadAction<string>) => {
+          state.restaurantDescription = action.payload;
+        },
         setPlayerHasBathroomKey: (state: GameState, action: PayloadAction<boolean>) => {
             state.player.hasBathroomKey = action.payload;
         },
@@ -96,7 +103,9 @@ export const gameStateSlice = createSlice({
 
 export const selectGameState = (state: RootState) => state.gameState;
 export const selectLastText = (state: RootState) => state.gameState.lastText;
+export const selectRestaurantDescription = (state: RootState) => state.gameState.restaurantDescription
 
+export const actionSetRestaurantDescription = (description: string) => ({type: 'gameState/setRestaurantDescription', payload: description})
 export const actionSetPlayerHasBathroomKey = (hasBathroomKey: boolean) => ({type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey})
 export const actionIncreaseWaitressTrustOnPlayer = () => ({type: 'gameState/increaseWaitressTrustOnPlayer'})
 export const actionDecreaseWaitressTrustOnPlayer = () => ({type: 'gameState/decreaseWaitressTrustOnPlayer'})
@@ -119,38 +128,35 @@ function trust(person1:string, person2:string, score: number): string{
     return `${person1} do not trust ${person2}`;
 }
 
-function renderStateAsText(gameState: GameState): string {
-    let whoHasTheBathroomKey = 'The waitress have the key to the employees bathroom.';
-    if(gameState.player.hasBathroomKey){
-        whoHasTheBathroomKey = 'You have the key to the employees bathroom.';
-    }
+function getFactsFromGamestate(gameState: GameState): string[] {
+    const facts = [];
 
-    let waitressThinksPlayerIsAnEmployee = 'The waitress knows you do not work at this restaurant.';
-    if(gameState.waitress.player.thinksIsAnEmployee){
-        waitressThinksPlayerIsAnEmployee = 'The waitress thinks you work at this restaurant.';
-    }
+    facts.push(gameState.player.hasBathroomKey ?
+        'You have the key to the employees bathroom.'
+        : 'The waitress have the key to the employees bathroom.');
 
-    let friendWillPayForDinner = 'Jonas does not want to pay the dinner for you.';
-    if(gameState.friend.willPayForDinner){
-        friendWillPayForDinner = 'Jonas wants to pay the dinner for you.';
-    }
+    facts.push(gameState.waitress.player.thinksIsAnEmployee ?
+        'The waitress thinks you work at this restaurant..'
+        : 'The waitress knows you do not work at this restaurant.');
 
-    let friendWillGiveAGoodTip = 'Jonas does not want to give a good tip for the waitress, just the regular amount.';
-    if(gameState.friend.willGiveAGoodTip){
-        friendWillGiveAGoodTip = 'Jonas wants to give the waitress a very good tip.';
-    }
+    facts.push(gameState.friend.willPayForDinner ?
+        'Jonas wants to pay the dinner for you.'
+        : 'Jonas does not want to pay the dinner for you.');
 
-    const friendSatisfaction = `Jonas is ${gameState.friend.waitress.isSatisfiedWithTheService? 'satisfied':'not satisfied'} with the service.`;
+    facts.push(gameState.friend.willGiveAGoodTip ?
+        'Jonas wants to give the waitress a very good tip.'
+        : 'Jonas does not want to give a good tip for the waitress, just the regular amount.');
 
-    return `${whoHasTheBathroomKey} 
-    ${waitressThinksPlayerIsAnEmployee}
-    ${trust('The waitress', 'you', gameState.waitress.player.trust)}
-    ${trust('The waitress', 'Jonas', gameState.waitress.player.trust)}
-    ${friendWillPayForDinner}
-    ${friendWillGiveAGoodTip}
-    ${trust('Jonas', 'you', gameState.friend.player.trust)}
-    ${friendSatisfaction}
-    On this restaurant you pay the bill at the end of your meal.`;
+    facts.push(gameState.friend.waitress.isSatisfiedWithTheService ?
+        'Jonas is satisfied with the service.'
+        : 'Jonas is unhappy with the service.');
+
+    facts.push(trust('The waitress', 'you', gameState.waitress.player.trust));
+    facts.push(trust('The waitress', 'Jonas', gameState.waitress.player.trust));
+    facts.push(trust('Jonas', 'you', gameState.friend.player.trust));
+    facts.push('On this restaurant you pay the bill at the end of your meal, so they don\'t pay the bill in this scene.');
+
+    return facts.concat(gameState.facts);
 }
 
 export type PlayerAction = 'waitress:order:food' | 
@@ -184,38 +190,36 @@ export type PlayerAction = 'waitress:order:food' |
 function interactWithWaitress(
     dispatch: Dispatch<AnyAction>, 
     openAiKey: string,
-    stateAsText: string,
-    interaction: string,
+    openAiQuery: string,
     action: string,
 ){
     dispatch(actionSetScreen('showText'));
-
-    const openAiQuery = `${stateAsText} \n${interaction}`;
     
-        getCompletion(openAiKey, openAiQuery)
+    getCompletion(openAiKey, openAiQuery)
         .then((textResult) => {
+            const finalText = `${openAiQuery}\n${textResult}`;
             if(action === 'waitress:ask:employeeBathroom'){
-                getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid the waitress gave you the key to the employees bathroom, yes or no?`)
-                .then((answer) => {
-                    if(answer.toLocaleLowerCase().includes('yes')){
-                        batch(() => {
-                            dispatch(actionSetPlayerHasBathroomKey(true));
-                            dispatch(actionAddMessage('You now you have the key to the employees bathroom.'));
-                        })
-                    }
-                });
+                answerQuestion(openAiKey, finalText,'Did the waitress gave you the key to the employees bathroom?')
+                    .then((answer) => {
+                        if(answer){
+                            batch(() => {
+                                dispatch(actionSetPlayerHasBathroomKey(true));
+                                dispatch(actionAddMessage('You now you have the key to the employees bathroom.'));
+                            })
+                        }
+                    });
             }
-            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDoes the waitress liked what you said, yes or no?`)
+            answerQuestion(openAiKey, finalText, 'Does the waitress liked what you said?')
                 .then((answer) => {
-                    if(answer.toLocaleLowerCase().includes('yes')){
+                    if(answer){
                         batch(() => {
                             dispatch(actionIncreaseWaitressTrustOnPlayer());
                             dispatch(actionAddMessage('You gained more trust from the waitress.'));
                         })
                     }else{
-                        getCompletion(openAiKey, `${stateAsText} ${textResult}.\nIs the waitress annoyed by what you said, yes or no?`)
+                        answerQuestion(openAiKey, finalText, `Is the waitress annoyed by what you said?`)
                             .then((answer) => {
-                                if(answer.toLocaleLowerCase().includes('yes')){
+                                if(answer){
                                     batch(() => {
                                         dispatch(actionDecreaseWaitressTrustOnPlayer());
                                         dispatch(actionAddMessage('The waitress is annoyed by this interaction.'));
@@ -224,28 +228,25 @@ function interactWithWaitress(
                             });
                     }
                 });
-            dispatch(actionSetLastText(textResult));
+        dispatch(actionSetLastText(textResult));
         })
-        .catch(() => dispatch(actionSetScreen('error')));
+    .catch(() => dispatch(actionSetScreen('error')));
 }
 
 function interactWithFriend(
     dispatch: Dispatch<AnyAction>, 
     openAiKey: string,
-    stateAsText: string,
-    interaction: string,
+    openAiQuery: string,
     action: string,
 ){
     dispatch(actionSetScreen('showText'));
-
-    const openAiQuery = `${stateAsText} \n${interaction}`;
-    
-        getCompletion(openAiKey, openAiQuery)
+    getCompletion(openAiKey, openAiQuery)
         .then((textResult) => {
+            const finalText = `${openAiQuery}\n${textResult}`;
             if(action === 'friend:ask:payForDinner'){
-                getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid Jonas agreed to pay for dinner, yes or no?`)
+                answerQuestion(openAiKey, finalText, `Did Jonas agreed to pay for dinner?`)
                 .then((answer) => {
-                    if(answer.toLocaleLowerCase().includes('yes')){
+                    if(answer){
                         batch(() => {
                             dispatch(actionFriendPaysForDinner());
                             dispatch(actionAddMessage('Jonas will pay the dinner.'));
@@ -254,27 +255,27 @@ function interactWithFriend(
                 });
             }
             if(action === 'friend:ask:giveGoodTip'){
-                getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDid Jonas agreed to give the waitress a good tip, yes or no?`)
-                .then((answer) => {
-                    if(answer.toLocaleLowerCase().includes('yes')){
-                        batch(() => {
-                            dispatch(actionFriendWillGiveAGoodTip());
-                            dispatch(actionAddMessage('Jonas will give the waitress a good tip.'));
-                        })
-                    }
-                });
+                answerQuestion(openAiKey, finalText, `Did Jonas agreed to give the waitress a good tip?`)
+                    .then((answer) => {
+                        if(answer){
+                            batch(() => {
+                                dispatch(actionFriendWillGiveAGoodTip());
+                                dispatch(actionAddMessage('Jonas will give the waitress a good tip.'));
+                            })
+                        }
+                    });
             }
-            getCompletion(openAiKey, `${stateAsText} ${textResult}.\nDoes Jonas liked what you said, yes or no?`)
+            answerQuestion(openAiKey, finalText, `Does Jonas liked what you said?`)
                 .then((answer) => {
-                    if(answer.toLocaleLowerCase().includes('yes')){
+                    if(answer){
                         batch(() => {
                             dispatch(actionIncreaseFriendTrustOnPlayer());
                             dispatch(actionAddMessage('You gained more trust from Jonas.'));
                         })
                     }else{
-                        getCompletion(openAiKey, `${stateAsText} ${textResult}.\nIs Jonas annoyed by what you said, yes or no?`)
+                        answerQuestion(openAiKey, finalText, `Is Jonas annoyed by what you said?`)
                             .then((answer) => {
-                                if(answer.toLocaleLowerCase().includes('yes')){
+                                if(answer){
                                     batch(() => {
                                         dispatch(actionDecreaseFriendTrustOnPlayer());
                                         dispatch(actionAddMessage('Jonas is annoyed by this interaction.'));
@@ -293,37 +294,66 @@ type Interactions = {
   };
 
 const interactionsWithWaitress: Interactions = {
-    'waitress:order:food': 'You call the waitress to order food.',
-    'waitress:order:drink': 'You call the waitress to order drinks.',
-    'waitress:ask:bill': 'You call the waitress and asks for the bill.',
-    'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees.',
-    'waitress:ask:employeeBathroom': 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key.',
-    'waitress:compliment:service': 'You are very happy with the service and decides to give the waitress a compliment on her service.',
-    'waitress:compliment:waitress': 'You decide to compliment the waitress on her wonderfull service.',
-    'waitress:compliment:restaurant': 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant.',
-    'waitress:compliment:food': 'You decide to call the waitress to tell her you really like the food.',
-    'waitress:complain:service': 'You are dissatisfied with the service and decides to complain to the waitress.',
-    'waitress:complain:waitress': 'You call the waitress to complain about her and tell her how awfull she is.',
-    'waitress:complain:restaurant': 'You hated this restaurant and decides to call the waitress to let her know about it.',
-    'waitress:complain:food': 'You did not liked the food and decides to call the waitress to let her know about it.',
+    'waitress:order:food': 'You call the waitress to order food, but not drinks yet',
+    'waitress:order:drink': 'You call the waitress to order only the drinks',
+    'waitress:ask:bill': 'You call the waitress and asks for the bill',
+    'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees',
+    'waitress:ask:employeeBathroom': 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key',
+    'waitress:compliment:service': 'You are very happy with the service and decides to give the waitress a compliment on her service',
+    'waitress:compliment:waitress': 'You decide to compliment the waitress on her wonderfull service',
+    'waitress:compliment:restaurant': 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant',
+    'waitress:compliment:food': 'You decide to call the waitress to tell her you really like the food',
+    'waitress:complain:service': 'You are dissatisfied with the service and decides to complain to the waitress',
+    'waitress:complain:waitress': 'You call the waitress to complain about her and tell her how awfull she is',
+    'waitress:complain:restaurant': 'You hated this restaurant and decides to call the waitress to let her know about it',
+    'waitress:complain:food': 'You did not liked the food and decides to call the waitress to let her know about it',
 }
 
 const interactionsWithFriend: Interactions = {
-    'friend:ask:payForDinner': 'You ask Jonas if he can pay the bill for the dinner.',
-    'friend:ask:giveGoodTip': 'You ask Jonas to give a good tip for the waitress.',
-    'friend:talk:boats': 'You start a conversation about boats with Jonas. Jonas really likes to talk about boats.',
-    'friend:talk:cars': 'You start a conversation about cars with Jonas. Jonas really likes to talk about cars.',
-    'friend:talk:photography': 'You start a conversation about photography with Jonas. Jonas really likes to talk about photography.',
-    'friend:talk:computers': 'You start a conversation about computers with Jonas. Jonas hates to talk about computers.',
-    'friend:talk:pets': 'You start a conversation about pets with Jonas. Jonas hates to talk about pets.',
-    'friend:talk:tv': 'You start a conversation about tv shows with Jonas. Jonas hates to talk about tv shows.',
-    'friend:talk:weather': 'You start a conversation about the weather with Jonas.',
-    'friend:talk:food': 'You start a conversation about the food from this restaurant with Jonas.',
-    'friend:talk:drink': 'You start a conversation about the drinks from this restaurant with Jonas.',
-    'friend:compliment:intelligence': 'You comliment Jonas on his intelligence.',
-    'friend:compliment:appearance': 'You comliment Jonas on his appearance.',
-    'friend:compliment:personality': 'You comliment Jonas on his personality.',
+    'friend:ask:payForDinner': 'You ask Jonas if he can pay the bill for the dinner',
+    'friend:ask:giveGoodTip': 'You ask Jonas to give a good tip for the waitress',
+    'friend:talk:boats': 'You start a conversation about boats with Jonas. Jonas really likes to talk about boats',
+    'friend:talk:cars': 'You start a conversation about cars with Jonas. Jonas really likes to talk about cars',
+    'friend:talk:photography': 'You start a conversation about photography with Jonas. Jonas really likes to talk about photography',
+    'friend:talk:computers': 'You start a conversation about computers with Jonas. Jonas hates to talk about computers',
+    'friend:talk:pets': 'You start a conversation about pets with Jonas. Jonas hates to talk about pets',
+    'friend:talk:tv': 'You start a conversation about tv shows with Jonas. Jonas hates to talk about tv shows',
+    'friend:talk:weather': 'You start a conversation about the weather with Jonas',
+    'friend:talk:food': 'You start a conversation about the food from this restaurant with Jonas',
+    'friend:talk:drink': 'You start a conversation about the drinks from this restaurant with Jonas',
+    'friend:compliment:intelligence': 'You compliment Jonas on his intelligence',
+    'friend:compliment:appearance': 'You compliment Jonas on his appearance',
+    'friend:compliment:personality': 'You compliment Jonas on his personality',
 }
+
+function textWrapper(
+    restaurantDescription: string, 
+    facts: string[], 
+    talkingTo: string,
+    action: string
+): string {
+    return `This scene happens at the restaurant. You are having dinner with your friend Jonas.
+
+Restaurant description:
+
+${restaurantDescription}
+
+This is a dialog between you and ${talkingTo}.
+Please notice that:
+${facts.map(fact => '- '+fact).join('\n')}
+${action}. This is how the scene goes:`;
+}
+
+export async function dispatchActionQueryRestaurantDescription(dispatch: Dispatch<AnyAction>, openAiKey: string) {
+    const openAiQuery = `This is the restaurant description:`;
+  
+    getCompletion(openAiKey, openAiQuery)
+      .then((result) => dispatch(actionSetRestaurantDescription(result)))
+      .catch((e) =>{
+        console.error(e);
+        dispatch(actionSetScreen('error'));
+      });
+  }
 
 export async function dispatchPlayerAction(
     dispatch: Dispatch<AnyAction>, 
@@ -331,27 +361,20 @@ export async function dispatchPlayerAction(
     openAiKey: string,
     action: PlayerAction
 ) {
-      /*
-      - Read action
-- Render state as text
-- If action has an outcome (ex: success or failure)
-  - Append action to text
-  - Append yes/no question to outcome
-- Append action to text, if action has outcome also append it. This is the final text.
-- Ask for narration
-- Print only narration
-- For each state, send final text and a yes/no question, update the state accordingly
-- Go back to read action
-*/
-    const stateAsText = renderStateAsText(currentState);
+    const talkingTo = action.startsWith('waitress') ? 'the waitress' : 'Jonas' ;
+    const facts = getFactsFromGamestate(currentState);
     
     if(action.startsWith('waitress')){
         let interaction = interactionsWithWaitress[action];
         interactWithWaitress(
             dispatch, 
             openAiKey, 
-            stateAsText, 
-            interaction + ' This is how it goes:\n',
+            textWrapper(
+                currentState.restaurantDescription, 
+                facts, 
+                talkingTo, 
+                interaction
+            ),
             action
         );
     }
@@ -360,8 +383,12 @@ export async function dispatchPlayerAction(
         interactWithFriend(
             dispatch, 
             openAiKey, 
-            stateAsText, 
-            interaction + ' This is how it goes:\n',
+            textWrapper(
+                currentState.restaurantDescription, 
+                facts, 
+                talkingTo, 
+                interaction
+            ),
             action
         );
     }
