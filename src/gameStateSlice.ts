@@ -10,6 +10,7 @@ import { getCompletion, answerQuestion } from './OpenAiApi'
 type GameState = {
     lastText: string,
     restaurantDescription: string,
+    restaurantType: string,
     facts: string[],
     player: {
         hasBathroomKey: boolean,
@@ -19,9 +20,6 @@ type GameState = {
             thinksIsAnEmployee: boolean,
             trust: number, 
         },
-        friend: {
-            trust: number, 
-        }
     },
     friend: {
         willPayForDinner: boolean,
@@ -37,8 +35,12 @@ type GameState = {
 
 const initialState: GameState = {
     lastText: 'Loading...',
-    facts: [],
+    facts: [
+        'You really need to go to the bathroom.',
+        'You forgot to bring your wallet',
+    ],
     restaurantDescription: '',
+    restaurantType: '',
     player: {
         hasBathroomKey: false,
     },
@@ -47,9 +49,6 @@ const initialState: GameState = {
             thinksIsAnEmployee: false,
             trust: 0, 
         },
-        friend: {
-            trust: 0, 
-        }
     },
     friend: {
         willPayForDinner: false,
@@ -84,6 +83,9 @@ export const gameStateSlice = createSlice({
         setLastText: (state: GameState, action: PayloadAction<string>) => {
             state.lastText = action.payload;
         },
+        setRestaurantType: (state: GameState, action: PayloadAction<string>) => {
+          state.restaurantType = action.payload;
+        },
         friendPaysForDinner: (state: GameState) => {
             state.friend.willPayForDinner = true;
         },
@@ -104,9 +106,11 @@ export const gameStateSlice = createSlice({
 export const selectGameState = (state: RootState) => state.gameState;
 export const selectLastText = (state: RootState) => state.gameState.lastText;
 export const selectRestaurantDescription = (state: RootState) => state.gameState.restaurantDescription
+export const selectRestaurantType = (state: RootState) => state.gameState.restaurantType
 
 export const actionSetRestaurantDescription = (description: string) => ({type: 'gameState/setRestaurantDescription', payload: description})
 export const actionSetPlayerHasBathroomKey = (hasBathroomKey: boolean) => ({type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey})
+export const actionSetRestaurantType= (restaurantType: string) => ({type: 'gameState/setRestaurantType', payload: restaurantType})
 export const actionIncreaseWaitressTrustOnPlayer = () => ({type: 'gameState/increaseWaitressTrustOnPlayer'})
 export const actionDecreaseWaitressTrustOnPlayer = () => ({type: 'gameState/decreaseWaitressTrustOnPlayer'})
 export const actionFriendPaysForDinner = () => ({type: 'gameState/friendPaysForDinner'})
@@ -294,7 +298,7 @@ type Interactions = {
   };
 
 const interactionsWithWaitress: Interactions = {
-    'waitress:order:food': 'You call the waitress to order food, but not drinks yet',
+    'waitress:order:food': 'You call the waitress to order food, but do not order drinks',
     'waitress:order:drink': 'You call the waitress to order only the drinks',
     'waitress:ask:bill': 'You call the waitress and asks for the bill',
     'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees',
@@ -339,13 +343,14 @@ Restaurant description:
 ${restaurantDescription}
 
 This is a dialog between you and ${talkingTo}.
-Please notice that:
+It is very important to notice that:
 ${facts.map(fact => '- '+fact).join('\n')}
+
 ${action}. This is how the scene goes:`;
 }
 
-export async function dispatchActionQueryRestaurantDescription(dispatch: Dispatch<AnyAction>, openAiKey: string) {
-    const openAiQuery = `This is the restaurant description:`;
+export async function dispatchActionQueryRestaurantDescription(dispatch: Dispatch<AnyAction>, openAiKey: string, restaurantType: string) {
+    const openAiQuery = `This is the ${restaurantType} restaurant description:`;
   
     getCompletion(openAiKey, openAiQuery)
       .then((result) => dispatch(actionSetRestaurantDescription(result)))

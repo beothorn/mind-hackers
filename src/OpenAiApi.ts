@@ -41,11 +41,11 @@ ${question}(yes or no)
 }).then((result) => {
     const text = result.data.choices[0].text.trim();
     console.log({query: `===
-    ${situation}
-    ===
-    From this scene:
-    ${question}(yes or no)
-    `, text});
+${situation}
+===
+From this scene:
+${question}(yes or no)
+`, text});
     return text.toLocaleLowerCase().includes('yes');
 });
 

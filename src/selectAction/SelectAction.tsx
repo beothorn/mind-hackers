@@ -208,7 +208,32 @@ const interactions = [
                 ]
             },
         ]
-    }
+    },
+    {
+        character: 'Actions',
+        interactions: [
+            {
+                action: 'Go',
+                options: [
+                    {
+                        name: 'Employees bathroom',
+                        icon: <FaceRetouchingNaturalIcon />,
+                        playerAction: 'you:go:employeeBathroom' as PlayerAction,
+                    },
+                    {
+                        name: 'Home',
+                        icon: <FaceRetouchingNaturalIcon />,
+                        playerAction: 'you:go:home' as PlayerAction,
+                    },
+                    {
+                        name: 'Outside',
+                        icon: <FaceRetouchingNaturalIcon />,
+                        playerAction: 'you:go:outside' as PlayerAction,
+                    }
+                ]
+            },
+        ]
+    },
 ]
 
 export function SelectAction() {

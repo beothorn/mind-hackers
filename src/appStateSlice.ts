@@ -5,7 +5,7 @@ import type { RootState } from './store'
 
 import { listEngines } from './OpenAiApi'
 
-export type AppScreen = 'testOpenAiToken' | 'presentation' | 'selectAction' | 'showText' | 'showIntro' | 'error'
+export type AppScreen = 'testOpenAiToken' | 'presentation' | 'selectAction' | 'showText' | 'showIntro' | 'error' | 'askRestaurantType'
 
 type AppState = {
   openAiKey: string,
@@ -57,7 +57,7 @@ export async function dispatchActionCheckOpenAiKey(dispatch: Dispatch<AnyAction>
       localStorage.setItem('openAiKey', openAiKey);
       return batch(() => {
         dispatch(actionSetOpenAiKey(openAiKey));
-        dispatch(actionSetScreen('showIntro'));
+        dispatch(actionSetScreen('askRestaurantType'));
       })
     })
     .catch(() => dispatch(actionSetScreen('error')));

@@ -5,36 +5,27 @@ import Button from '@mui/material/Button';
 
 import { useAppSelector, useAppDispatch } from '../hooks'
 import { selectOpenAiKey, actionSetScreen } from '../appStateSlice';
-import { selectRestaurantDescription, dispatchActionQueryRestaurantDescription } from '../gameStateSlice';
+import { selectRestaurantDescription, selectRestaurantType, dispatchActionQueryRestaurantDescription } from '../gameStateSlice';
 
 export function ShowIntro() {
     const openAiKey = useAppSelector(selectOpenAiKey);
     const restaurantDescription = useAppSelector(selectRestaurantDescription);
+    const restaurantType = useAppSelector(selectRestaurantType);
     
     const dispatch = useAppDispatch()
     const gotoNextScreen = () => dispatch(actionSetScreen('selectAction'));
 
     useEffect(() => {
-        dispatchActionQueryRestaurantDescription(dispatch, openAiKey);
+        dispatchActionQueryRestaurantDescription(dispatch, openAiKey, restaurantType);
     }, [openAiKey]);
 
     return <>
         {
             restaurantDescription === 'Loading...' ? <></> : <>
                 <Typography variant="h6" gutterBottom>
-                    Prologue
-                </Typography>
-                <Typography variant="body1" gutterBottom>
-                    A long time ago you found a magic ring that give you the ability to insert thoughts into the other persons head.
-                    <br />
-                    Unfortunately it only works when the person trusts you.
-                </Typography>
-                <Typography variant="h6" gutterBottom>
                     The dinner
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                    You were invited to dinner by your friend Jonas.
-                    <br />
                     Arriving at the restaurant you notice two things:
                 </Typography>
                 <Typography variant="body1" gutterBottom>

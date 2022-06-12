@@ -6,6 +6,7 @@ import { SelectAction } from './selectAction/SelectAction';
 import { ShowText } from './showText/ShowText';
 import { TestOpenAiToken } from './testOpenAiToken/TestOpenAiToken';
 import { ErrorScreen } from './errorScreen/ErrorScreen';
+import { AskRestaurantType } from './askRestaurantType/AskRestaurantType';
 
 import { useAppSelector, useAppDispatch } from './hooks'
 import { selectScreen, selectMessages, actionRemoveMessage } from './appStateSlice';
@@ -51,6 +52,9 @@ export function App() {
             break;
         case 'error':
             currentScreenComponent = <ErrorScreen />;
+            break;
+        case 'askRestaurantType':
+            currentScreenComponent = <AskRestaurantType />;
             break;
     }
 

@@ -69276,10 +69276,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _showText_ShowText__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./showText/ShowText */ "./src/showText/ShowText.tsx");
 /* harmony import */ var _testOpenAiToken_TestOpenAiToken__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./testOpenAiToken/TestOpenAiToken */ "./src/testOpenAiToken/TestOpenAiToken.tsx");
 /* harmony import */ var _errorScreen_ErrorScreen__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./errorScreen/ErrorScreen */ "./src/errorScreen/ErrorScreen.tsx");
-/* harmony import */ var _hooks__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./hooks */ "./src/hooks.ts");
-/* harmony import */ var _appStateSlice__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./appStateSlice */ "./src/appStateSlice.ts");
-/* harmony import */ var _mui_material_Box__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! @mui/material/Box */ "./node_modules/@mui/material/Box/Box.js");
-/* harmony import */ var notistack__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! notistack */ "./node_modules/notistack/dist/notistack.esm.js");
+/* harmony import */ var _askRestaurantType_AskRestaurantType__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./askRestaurantType/AskRestaurantType */ "./src/askRestaurantType/AskRestaurantType.tsx");
+/* harmony import */ var _hooks__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./hooks */ "./src/hooks.ts");
+/* harmony import */ var _appStateSlice__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./appStateSlice */ "./src/appStateSlice.ts");
+/* harmony import */ var _mui_material_Box__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @mui/material/Box */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var notistack__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! notistack */ "./node_modules/notistack/dist/notistack.esm.js");
+
 
 
 
@@ -69292,14 +69294,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function App() {
-    var currentScreen = (0,_hooks__WEBPACK_IMPORTED_MODULE_7__.useAppSelector)(_appStateSlice__WEBPACK_IMPORTED_MODULE_8__.selectScreen);
-    var messages = (0,_hooks__WEBPACK_IMPORTED_MODULE_7__.useAppSelector)(_appStateSlice__WEBPACK_IMPORTED_MODULE_8__.selectMessages);
-    var dispatch = (0,_hooks__WEBPACK_IMPORTED_MODULE_7__.useAppDispatch)();
-    var enqueueSnackbar = (0,notistack__WEBPACK_IMPORTED_MODULE_9__.useSnackbar)().enqueueSnackbar;
+    var currentScreen = (0,_hooks__WEBPACK_IMPORTED_MODULE_8__.useAppSelector)(_appStateSlice__WEBPACK_IMPORTED_MODULE_9__.selectScreen);
+    var messages = (0,_hooks__WEBPACK_IMPORTED_MODULE_8__.useAppSelector)(_appStateSlice__WEBPACK_IMPORTED_MODULE_9__.selectMessages);
+    var dispatch = (0,_hooks__WEBPACK_IMPORTED_MODULE_8__.useAppDispatch)();
+    var enqueueSnackbar = (0,notistack__WEBPACK_IMPORTED_MODULE_10__.useSnackbar)().enqueueSnackbar;
     (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
         for (var _i = 0, messages_1 = messages; _i < messages_1.length; _i++) {
             var message = messages_1[_i];
-            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_8__.actionRemoveMessage)(message));
+            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_9__.actionRemoveMessage)(message));
             enqueueSnackbar(message, {
                 variant: 'info',
                 key: message,
@@ -69327,8 +69329,11 @@ function App() {
         case 'error':
             currentScreenComponent = react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_errorScreen_ErrorScreen__WEBPACK_IMPORTED_MODULE_6__.ErrorScreen, null);
             break;
+        case 'askRestaurantType':
+            currentScreenComponent = react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_askRestaurantType_AskRestaurantType__WEBPACK_IMPORTED_MODULE_7__.AskRestaurantType, null);
+            break;
     }
-    return react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Box__WEBPACK_IMPORTED_MODULE_10__["default"], { sx: { padding: '1rem', bgcolor: 'background.paper' } }, currentScreenComponent);
+    return react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Box__WEBPACK_IMPORTED_MODULE_11__["default"], { sx: { padding: '1rem', bgcolor: 'background.paper' } }, currentScreenComponent);
 }
 
 
@@ -69383,7 +69388,7 @@ var answerQuestion = function (openAiKey, situation, question) { return axios__W
     }
 }).then(function (result) {
     var text = result.data.choices[0].text.trim();
-    console.log({ query: "===\n    ".concat(situation, "\n    ===\n    From this scene:\n    ").concat(question, "(yes or no)\n    "), text: text });
+    console.log({ query: "===\n".concat(situation, "\n===\nFrom this scene:\n").concat(question, "(yes or no)\n"), text: text });
     return text.toLocaleLowerCase().includes('yes');
 }); };
 var listEngines = function (openAiKey) { return axios__WEBPACK_IMPORTED_MODULE_0___default().get("".concat(openAiUrl, "/engines"), {
@@ -69501,7 +69506,7 @@ function dispatchActionCheckOpenAiKey(dispatch, openAiKey) {
                 localStorage.setItem('openAiKey', openAiKey);
                 return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
                     dispatch(actionSetOpenAiKey(openAiKey));
-                    dispatch(actionSetScreen('showIntro'));
+                    dispatch(actionSetScreen('askRestaurantType'));
                 });
             })
                 .catch(function () { return dispatch(actionSetScreen('error')); });
@@ -69510,6 +69515,62 @@ function dispatchActionCheckOpenAiKey(dispatch, openAiKey) {
     });
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (appStateSlice.reducer);
+
+
+/***/ }),
+
+/***/ "./src/askRestaurantType/AskRestaurantType.tsx":
+/*!*****************************************************!*\
+  !*** ./src/askRestaurantType/AskRestaurantType.tsx ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "AskRestaurantType": () => (/* binding */ AskRestaurantType)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _mui_material_Typography__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/material/Typography */ "./node_modules/@mui/material/Typography/Typography.js");
+/* harmony import */ var _mui_material_Button__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/material/Button */ "./node_modules/@mui/material/Button/Button.js");
+/* harmony import */ var _hooks__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../hooks */ "./src/hooks.ts");
+/* harmony import */ var _appStateSlice__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../appStateSlice */ "./src/appStateSlice.ts");
+/* harmony import */ var _gameStateSlice__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../gameStateSlice */ "./src/gameStateSlice.ts");
+/* harmony import */ var _mui_material_TextField__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/material/TextField */ "./node_modules/@mui/material/TextField/TextField.js");
+/* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/es/index.js");
+
+
+
+
+
+
+
+
+function AskRestaurantType() {
+    var _a = react__WEBPACK_IMPORTED_MODULE_0___default().useState('italian'), restaurantType = _a[0], setRestaurantType = _a[1];
+    var handleChange = function (event) {
+        setRestaurantType(event.target.value);
+    };
+    var dispatch = (0,_hooks__WEBPACK_IMPORTED_MODULE_1__.useAppDispatch)();
+    var callback = function () {
+        (0,react_redux__WEBPACK_IMPORTED_MODULE_4__.batch)(function () {
+            dispatch((0,_gameStateSlice__WEBPACK_IMPORTED_MODULE_3__.actionSetRestaurantType)(restaurantType));
+            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_2__.actionSetScreen)('showIntro'));
+        });
+    };
+    return react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null,
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_5__["default"], { variant: "h6", gutterBottom: true }, "Prologue"),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_5__["default"], { variant: "body1", gutterBottom: true },
+            "A long time ago you found a magic ring that give you the ability to insert thoughts into the other persons head.",
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
+            "Unfortunately it only works when the person trusts you."),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_5__["default"], { variant: "h6", gutterBottom: true }, "The dinner"),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_5__["default"], { variant: "body1", gutterBottom: true }, "You invited your friend Jonas to dinner."),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_5__["default"], { variant: "body1", gutterBottom: true }, "To what kind of restaurant you invited him? (chinese, italian, etc..)"),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_TextField__WEBPACK_IMPORTED_MODULE_6__["default"], { value: restaurantType, onChange: handleChange, required: true, size: "small", id: "input-key", label: "", variant: "outlined" }),
+        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Button__WEBPACK_IMPORTED_MODULE_7__["default"], { sx: { marginLeft: 1 }, variant: "contained", onClick: callback }, "Continue"));
+}
 
 
 /***/ }),
@@ -69565,13 +69626,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "actionSetLastText": () => (/* binding */ actionSetLastText),
 /* harmony export */   "actionSetPlayerHasBathroomKey": () => (/* binding */ actionSetPlayerHasBathroomKey),
 /* harmony export */   "actionSetRestaurantDescription": () => (/* binding */ actionSetRestaurantDescription),
+/* harmony export */   "actionSetRestaurantType": () => (/* binding */ actionSetRestaurantType),
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__),
 /* harmony export */   "dispatchActionQueryRestaurantDescription": () => (/* binding */ dispatchActionQueryRestaurantDescription),
 /* harmony export */   "dispatchPlayerAction": () => (/* binding */ dispatchPlayerAction),
 /* harmony export */   "gameStateSlice": () => (/* binding */ gameStateSlice),
 /* harmony export */   "selectGameState": () => (/* binding */ selectGameState),
 /* harmony export */   "selectLastText": () => (/* binding */ selectLastText),
-/* harmony export */   "selectRestaurantDescription": () => (/* binding */ selectRestaurantDescription)
+/* harmony export */   "selectRestaurantDescription": () => (/* binding */ selectRestaurantDescription),
+/* harmony export */   "selectRestaurantType": () => (/* binding */ selectRestaurantType)
 /* harmony export */ });
 /* harmony import */ var _reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @reduxjs/toolkit */ "./node_modules/@reduxjs/toolkit/dist/redux-toolkit.esm.js");
 /* harmony import */ var react_redux__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react-redux */ "./node_modules/react-redux/es/index.js");
@@ -69619,8 +69682,12 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 var initialState = {
     lastText: 'Loading...',
-    facts: [],
+    facts: [
+        'You really need to go to the bathroom.',
+        'You forgot to bring your wallet',
+    ],
     restaurantDescription: '',
+    restaurantType: '',
     player: {
         hasBathroomKey: false,
     },
@@ -69629,9 +69696,6 @@ var initialState = {
             thinksIsAnEmployee: false,
             trust: 0,
         },
-        friend: {
-            trust: 0,
-        }
     },
     friend: {
         willPayForDinner: false,
@@ -69665,6 +69729,9 @@ var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlic
         setLastText: function (state, action) {
             state.lastText = action.payload;
         },
+        setRestaurantType: function (state, action) {
+            state.restaurantType = action.payload;
+        },
         friendPaysForDinner: function (state) {
             state.friend.willPayForDinner = true;
         },
@@ -69684,8 +69751,10 @@ var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlic
 var selectGameState = function (state) { return state.gameState; };
 var selectLastText = function (state) { return state.gameState.lastText; };
 var selectRestaurantDescription = function (state) { return state.gameState.restaurantDescription; };
+var selectRestaurantType = function (state) { return state.gameState.restaurantType; };
 var actionSetRestaurantDescription = function (description) { return ({ type: 'gameState/setRestaurantDescription', payload: description }); };
 var actionSetPlayerHasBathroomKey = function (hasBathroomKey) { return ({ type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey }); };
+var actionSetRestaurantType = function (restaurantType) { return ({ type: 'gameState/setRestaurantType', payload: restaurantType }); };
 var actionIncreaseWaitressTrustOnPlayer = function () { return ({ type: 'gameState/increaseWaitressTrustOnPlayer' }); };
 var actionDecreaseWaitressTrustOnPlayer = function () { return ({ type: 'gameState/decreaseWaitressTrustOnPlayer' }); };
 var actionFriendPaysForDinner = function () { return ({ type: 'gameState/friendPaysForDinner' }); };
@@ -69820,7 +69889,7 @@ function interactWithFriend(dispatch, openAiKey, openAiQuery, action) {
         .catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
 }
 var interactionsWithWaitress = {
-    'waitress:order:food': 'You call the waitress to order food, but not drinks yet',
+    'waitress:order:food': 'You call the waitress to order food, but do not order drinks',
     'waitress:order:drink': 'You call the waitress to order only the drinks',
     'waitress:ask:bill': 'You call the waitress and asks for the bill',
     'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees',
@@ -69851,13 +69920,13 @@ var interactionsWithFriend = {
     'friend:compliment:personality': 'You compliment Jonas on his personality',
 };
 function textWrapper(restaurantDescription, facts, talkingTo, action) {
-    return "This scene happens at the restaurant. You are having dinner with your friend Jonas.\n\nRestaurant description:\n\n".concat(restaurantDescription, "\n\nThis is a dialog between you and ").concat(talkingTo, ".\nPlease notice that:\n").concat(facts.map(function (fact) { return '- ' + fact; }).join('\n'), "\n").concat(action, ". This is how the scene goes:");
+    return "This scene happens at the restaurant. You are having dinner with your friend Jonas.\n\nRestaurant description:\n\n".concat(restaurantDescription, "\n\nThis is a dialog between you and ").concat(talkingTo, ".\nIt is very important to notice that:\n").concat(facts.map(function (fact) { return '- ' + fact; }).join('\n'), "\n\n").concat(action, ". This is how the scene goes:");
 }
-function dispatchActionQueryRestaurantDescription(dispatch, openAiKey) {
+function dispatchActionQueryRestaurantDescription(dispatch, openAiKey, restaurantType) {
     return __awaiter(this, void 0, void 0, function () {
         var openAiQuery;
         return __generator(this, function (_a) {
-            openAiQuery = "This is the restaurant description:";
+            openAiQuery = "This is the ".concat(restaurantType, " restaurant description:");
             (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery)
                 .then(function (result) { return dispatch(actionSetRestaurantDescription(result)); })
                 .catch(function (e) {
@@ -70330,7 +70399,32 @@ var interactions = [
                 ]
             },
         ]
-    }
+    },
+    {
+        character: 'Actions',
+        interactions: [
+            {
+                action: 'Go',
+                options: [
+                    {
+                        name: 'Employees bathroom',
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
+                        playerAction: 'you:go:employeeBathroom',
+                    },
+                    {
+                        name: 'Home',
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
+                        playerAction: 'you:go:home',
+                    },
+                    {
+                        name: 'Outside',
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
+                        playerAction: 'you:go:outside',
+                    }
+                ]
+            },
+        ]
+    },
 ];
 function SelectAction() {
     return react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_material_Box__WEBPACK_IMPORTED_MODULE_24__["default"], { sx: { bgcolor: 'background.paper' } },
@@ -70367,23 +70461,16 @@ __webpack_require__.r(__webpack_exports__);
 function ShowIntro() {
     var openAiKey = (0,_hooks__WEBPACK_IMPORTED_MODULE_1__.useAppSelector)(_appStateSlice__WEBPACK_IMPORTED_MODULE_2__.selectOpenAiKey);
     var restaurantDescription = (0,_hooks__WEBPACK_IMPORTED_MODULE_1__.useAppSelector)(_gameStateSlice__WEBPACK_IMPORTED_MODULE_3__.selectRestaurantDescription);
+    var restaurantType = (0,_hooks__WEBPACK_IMPORTED_MODULE_1__.useAppSelector)(_gameStateSlice__WEBPACK_IMPORTED_MODULE_3__.selectRestaurantType);
     var dispatch = (0,_hooks__WEBPACK_IMPORTED_MODULE_1__.useAppDispatch)();
     var gotoNextScreen = function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_2__.actionSetScreen)('selectAction')); };
     (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-        (0,_gameStateSlice__WEBPACK_IMPORTED_MODULE_3__.dispatchActionQueryRestaurantDescription)(dispatch, openAiKey);
+        (0,_gameStateSlice__WEBPACK_IMPORTED_MODULE_3__.dispatchActionQueryRestaurantDescription)(dispatch, openAiKey, restaurantType);
     }, [openAiKey]);
     return react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null,
         restaurantDescription === 'Loading...' ? react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null) : react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null,
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "h6", gutterBottom: true }, "Prologue"),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "body1", gutterBottom: true },
-                "A long time ago you found a magic ring that give you the ability to insert thoughts into the other persons head.",
-                react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
-                "Unfortunately it only works when the person trusts you."),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "h6", gutterBottom: true }, "The dinner"),
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "body1", gutterBottom: true },
-                "You were invited to dinner by your friend Jonas.",
-                react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null),
-                "Arriving at the restaurant you notice two things:"),
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "body1", gutterBottom: true }, "Arriving at the restaurant you notice two things:"),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "body1", gutterBottom: true }, "You really need to go to the bathroom."),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "body1", gutterBottom: true }, "You also realised that you forgot to bring your wallet. You and Jonas arrive at the restaurant."),
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Typography__WEBPACK_IMPORTED_MODULE_4__["default"], { variant: "h6", gutterBottom: true }, "The restaurant")),
