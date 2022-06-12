@@ -7,58 +7,50 @@ import type { RootState } from './store'
 
 import { getCompletion, answerQuestion } from './OpenAiApi'
 
+const waitressHasKey = 'The waitress have the key to the employees bathroom.';
+const playerHasKey = 'You have the key to the employees bathroom.';
+const friendWantsToPay = 'Jonas wants to pay the dinner for you.';
+const friendDontWantToPay = 'Jonas does not want to pay the dinner for you.';
+const friendWillGiveTheWaitressAGoodTip = 'Jonas wants to give the waitress a very good tip.';
+const friendWontGiveTheWaitressAGoodTip = 'Jonas does not want to give a good tip for the waitress, just the regular amount.';
+
 type GameState = {
     lastText: string,
     restaurantDescription: string,
     restaurantType: string,
-    facts: string[],
-    player: {
-        hasBathroomKey: boolean,
-    },
+    facts: Set<string>,
     waitress: {
         player: {
-            thinksIsAnEmployee: boolean,
             trust: number, 
         },
     },
     friend: {
-        willPayForDinner: boolean,
-        willGiveAGoodTip: boolean,
         player: {
             trust: number, 
         },
-        waitress: {
-            isSatisfiedWithTheService: boolean,
-        }
     }
 }
 
 const initialState: GameState = {
     lastText: 'Loading...',
-    facts: [
+    facts: new Set([
         'You really need to go to the bathroom.',
         'You forgot to bring your wallet',
-    ],
+        waitressHasKey,
+        friendDontWantToPay,
+        friendWontGiveTheWaitressAGoodTip
+    ]),
     restaurantDescription: '',
     restaurantType: '',
-    player: {
-        hasBathroomKey: false,
-    },
     waitress: {
         player: {
-            thinksIsAnEmployee: false,
             trust: 0, 
         },
     },
     friend: {
-        willPayForDinner: false,
-        willGiveAGoodTip: false,
         player: {
             trust: 5, 
         },
-        waitress: {
-            isSatisfiedWithTheService: true,
-        }
     }
 }
 
@@ -70,7 +62,13 @@ export const gameStateSlice = createSlice({
           state.restaurantDescription = action.payload;
         },
         setPlayerHasBathroomKey: (state: GameState, action: PayloadAction<boolean>) => {
-            state.player.hasBathroomKey = action.payload;
+            if(action){
+                state.facts.delete(waitressHasKey);
+                state.facts.add(playerHasKey);
+            }else{
+                state.facts.delete(playerHasKey);
+                state.facts.add(waitressHasKey);
+            }
         },
         increaseWaitressTrustOnPlayer: (state: GameState) => {
             state.waitress.player.trust+= 1;
@@ -87,10 +85,12 @@ export const gameStateSlice = createSlice({
           state.restaurantType = action.payload;
         },
         friendPaysForDinner: (state: GameState) => {
-            state.friend.willPayForDinner = true;
+            state.facts.delete(friendDontWantToPay);
+            state.facts.add(friendWantsToPay);
         },
         friendWillGiveAGoodTip: (state: GameState) => {
-            state.friend.willGiveAGoodTip = true;
+            state.facts.delete(friendWontGiveTheWaitressAGoodTip);
+            state.facts.add(friendWillGiveTheWaitressAGoodTip);
         },
         increaseFriendTrustOnPlayer: (state: GameState) => {
             state.friend.player.trust+= 1;
@@ -135,32 +135,12 @@ function trust(person1:string, person2:string, score: number): string{
 function getFactsFromGamestate(gameState: GameState): string[] {
     const facts = [];
 
-    facts.push(gameState.player.hasBathroomKey ?
-        'You have the key to the employees bathroom.'
-        : 'The waitress have the key to the employees bathroom.');
-
-    facts.push(gameState.waitress.player.thinksIsAnEmployee ?
-        'The waitress thinks you work at this restaurant..'
-        : 'The waitress knows you do not work at this restaurant.');
-
-    facts.push(gameState.friend.willPayForDinner ?
-        'Jonas wants to pay the dinner for you.'
-        : 'Jonas does not want to pay the dinner for you.');
-
-    facts.push(gameState.friend.willGiveAGoodTip ?
-        'Jonas wants to give the waitress a very good tip.'
-        : 'Jonas does not want to give a good tip for the waitress, just the regular amount.');
-
-    facts.push(gameState.friend.waitress.isSatisfiedWithTheService ?
-        'Jonas is satisfied with the service.'
-        : 'Jonas is unhappy with the service.');
-
     facts.push(trust('The waitress', 'you', gameState.waitress.player.trust));
     facts.push(trust('The waitress', 'Jonas', gameState.waitress.player.trust));
     facts.push(trust('Jonas', 'you', gameState.friend.player.trust));
     facts.push('On this restaurant you pay the bill at the end of your meal, so they don\'t pay the bill in this scene.');
 
-    return facts.concat(gameState.facts);
+    return facts.concat(Array.from(gameState.facts));
 }
 
 export type PlayerAction = 'waitress:order:food' | 
