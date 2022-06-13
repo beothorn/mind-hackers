@@ -77,7 +77,7 @@ const initialState: GameState = {
     restaurantType: '',
     waitress: {
         player: {
-            trust: 10, 
+            trust: 0, 
         },
     },
     friend: {

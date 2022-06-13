@@ -69638,6 +69638,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "selectGameState": () => (/* binding */ selectGameState),
 /* harmony export */   "selectLastText": () => (/* binding */ selectLastText),
 /* harmony export */   "selectOrder": () => (/* binding */ selectOrder),
+/* harmony export */   "selectPlayerHasKey": () => (/* binding */ selectPlayerHasKey),
 /* harmony export */   "selectRestaurantDescription": () => (/* binding */ selectRestaurantDescription),
 /* harmony export */   "selectRestaurantType": () => (/* binding */ selectRestaurantType)
 /* harmony export */ });
@@ -69685,21 +69686,45 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
-var waitressHasKey = 'The waitress have the key to the employees bathroom.';
-var playerHasKey = 'You have the key to the employees bathroom.';
-var friendWantsToPay = 'Jonas wants to pay the dinner for you.';
-var friendDontWantToPay = 'Jonas does not want to pay the dinner for you.';
-var friendWillGiveTheWaitressAGoodTip = 'Jonas wants to give the waitress a very good tip.';
-var friendWontGiveTheWaitressAGoodTip = 'Jonas does not want to give a good tip for the waitress, just the regular amount.';
+var waitressHasKey = {
+    fact: 'The waitress have the key to the employees bathroom.',
+    context: ['bathroom', 'waitress']
+};
+var playerHasKey = {
+    fact: 'You have the key to the employees bathroom.',
+    context: ['bathroom', 'waitress']
+};
+var friendWantsToPay = {
+    fact: 'Jonas wants to pay the dinner for you.',
+    context: ['payment']
+};
+var friendDontWantToPay = {
+    fact: 'Jonas does not want to pay the dinner for you.',
+    context: ['payment']
+};
+var friendWillGiveTheWaitressAGoodTip = {
+    fact: 'Jonas wants to give the waitress a very good tip.',
+    context: ['payment']
+};
+var friendWontGiveTheWaitressAGoodTip = {
+    fact: 'Jonas does not want to give a good tip for the waitress, just the regular amount.',
+    context: ['payment']
+};
 var initialState = {
     lastText: 'Loading...',
-    facts: new Set([
-        'You really need to go to the bathroom.',
-        'You forgot to bring your wallet',
+    facts: [
+        {
+            fact: 'You really need to go to the bathroom.',
+            context: ['bathroom']
+        },
+        {
+            fact: 'You forgot to bring your wallet',
+            context: ['wallet']
+        },
         waitressHasKey,
         friendDontWantToPay,
-        friendWontGiveTheWaitressAGoodTip
-    ]),
+        friendWontGiveTheWaitressAGoodTip,
+    ],
     order: '',
     restaurantDescription: '',
     restaurantType: '',
@@ -69723,12 +69748,12 @@ var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlic
         },
         setPlayerHasBathroomKey: function (state, action) {
             if (action) {
-                state.facts.delete(waitressHasKey);
-                state.facts.add(playerHasKey);
+                state.facts = state.facts.filter(function (fact) { return fact !== waitressHasKey; });
+                state.facts.push(playerHasKey);
             }
             else {
-                state.facts.delete(playerHasKey);
-                state.facts.add(waitressHasKey);
+                state.facts = state.facts.filter(function (fact) { return fact !== playerHasKey; });
+                state.facts.push(waitressHasKey);
             }
         },
         increaseWaitressTrustOnPlayer: function (state) {
@@ -69749,12 +69774,12 @@ var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlic
             state.order = action.payload;
         },
         friendPaysForDinner: function (state) {
-            state.facts.delete(friendDontWantToPay);
-            state.facts.add(friendWantsToPay);
+            state.facts = state.facts.filter(function (fact) { return fact !== friendDontWantToPay; });
+            state.facts.push(friendWantsToPay);
         },
         friendWillGiveAGoodTip: function (state) {
-            state.facts.delete(friendWontGiveTheWaitressAGoodTip);
-            state.facts.add(friendWillGiveTheWaitressAGoodTip);
+            state.facts = state.facts.filter(function (fact) { return fact !== friendWontGiveTheWaitressAGoodTip; });
+            state.facts.push(friendWillGiveTheWaitressAGoodTip);
         },
         increaseFriendTrustOnPlayer: function (state) {
             state.friend.player.trust += 1;
@@ -69771,6 +69796,7 @@ var selectLastText = function (state) { return state.gameState.lastText; };
 var selectRestaurantDescription = function (state) { return state.gameState.restaurantDescription; };
 var selectRestaurantType = function (state) { return state.gameState.restaurantType; };
 var selectOrder = function (state) { return state.gameState.order; };
+var selectPlayerHasKey = function (state) { return state.gameState.facts.findIndex(function (f) { return f.fact === playerHasKey.fact; }) > -1; };
 var actionSetRestaurantDescription = function (description) { return ({ type: 'gameState/setRestaurantDescription', payload: description }); };
 var actionSetPlayerHasBathroomKey = function (hasBathroomKey) { return ({ type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey }); };
 var actionSetRestaurantType = function (restaurantType) { return ({ type: 'gameState/setRestaurantType', payload: restaurantType }); };
@@ -69794,17 +69820,41 @@ function trust(person1, person2, score) {
     }
     return "".concat(person1, " do not trust ").concat(person2);
 }
-function getFactsFromGamestate(gameState) {
+function getFactsFromGamestate(gameState, contexts) {
     var facts = [];
-    facts.push(trust('The waitress', 'you', gameState.waitress.player.trust));
-    facts.push(trust('The waitress', 'Jonas', gameState.waitress.player.trust));
-    facts.push(trust('Jonas', 'you', gameState.friend.player.trust));
+    if (contexts.includes('waitress')) {
+        facts.push(trust('The waitress', 'you', gameState.waitress.player.trust));
+        facts.push(trust('The waitress', 'Jonas', gameState.waitress.player.trust));
+    }
+    if (contexts.includes('friend')) {
+        facts.push(trust('Jonas', 'you', gameState.friend.player.trust));
+    }
+    if (contexts.includes('order')) {
+        if (gameState.order !== '') {
+            facts.push("You ordered ".concat(gameState.order));
+        }
+    }
     facts.push('On this restaurant you pay the bill at the end of your meal, so they don\'t pay the bill in this scene.');
-    return facts.concat(Array.from(gameState.facts));
+    for (var _i = 0, _a = Array.from(gameState.facts); _i < _a.length; _i++) {
+        var fact = _a[_i];
+        if (fact.context.filter(function (context) { return contexts.includes(context); }).length > 0) {
+            facts.push(fact.fact);
+        }
+    }
+    return facts;
 }
 function inquirer(openAiKey, finalText) {
     return function (question, ifTrue, ifFalse) {
-        return (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, question).then(function (a) { return a ? ifTrue() : (ifFalse && ifFalse()); });
+        return (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, question).then(function (answer) {
+            if (answer) {
+                ifTrue();
+            }
+            else {
+                if (ifFalse) {
+                    ifFalse();
+                }
+            }
+        });
     };
 }
 function interactWithWaitress(dispatch, openAiKey, openAiQuery, action) {
@@ -69859,35 +69909,125 @@ function interactWithFriend(dispatch, openAiKey, openAiQuery, action) {
         dispatch(actionSetLastText(textResult));
     }).catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
 }
+function doSomething(dispatch, openAiKey, openAiQuery) {
+    dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('showText'));
+    (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery).then(function (textResult) {
+        dispatch(actionSetLastText(textResult));
+    }).catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
+}
 var interactionsWithWaitress = {
-    'waitress:order:placeOrder': 'You call the waitress to place the order',
-    'waitress:ask:bill': 'You call the waitress and asks for the bill',
-    'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees',
-    'waitress:ask:employeeBathroom': 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key',
-    'waitress:compliment:service': 'You are very happy with the service and decides to give the waitress a compliment on her service',
-    'waitress:compliment:waitress': 'You decide to compliment the waitress on her wonderfull service',
-    'waitress:compliment:restaurant': 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant',
-    'waitress:compliment:food': 'You decide to call the waitress to tell her you really like the food',
-    'waitress:complain:service': 'You are dissatisfied with the service and decides to complain to the waitress',
-    'waitress:complain:waitress': 'You call the waitress to complain about her and tell her how awfull she is',
-    'waitress:complain:restaurant': 'You hated this restaurant and decides to call the waitress to let her know about it',
-    'waitress:complain:food': 'You did not liked the food and decides to call the waitress to let her know about it',
+    'waitress:order:placeOrder': {
+        interaction: 'You call the waitress to place the order',
+        contexts: ['waitress']
+    },
+    'waitress:ask:bill': {
+        interaction: 'You call the waitress and asks for the bill',
+        contexts: ['waitress', 'payment'],
+    },
+    'waitress:ask:bathroom': {
+        interaction: 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees',
+        contexts: ['waitress', 'bathroom'],
+    },
+    'waitress:ask:employeeBathroom': {
+        interaction: 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key',
+        contexts: ['waitress', 'bathroom'],
+    },
+    'waitress:compliment:service': {
+        interaction: 'You are very happy with the service and decides to give the waitress a compliment on her service',
+        contexts: ['waitress']
+    },
+    'waitress:compliment:waitress': {
+        interaction: 'You decide to compliment the waitress on her wonderfull service',
+        contexts: ['waitress']
+    },
+    'waitress:compliment:restaurant': {
+        interaction: 'You like the restaurant atmosphere and decides to call the waitress to give a compliment to the restaurant',
+        contexts: ['waitress', 'order']
+    },
+    'waitress:compliment:food': {
+        interaction: 'You decide to call the waitress to tell her you really like the food',
+        contexts: ['waitress']
+    },
+    'waitress:complain:service': {
+        interaction: 'You are dissatisfied with the service and decides to complain to the waitress',
+        contexts: ['waitress']
+    },
+    'waitress:complain:waitress': {
+        interaction: 'You call the waitress to complain about her and tell her how awfull she is',
+        contexts: ['waitress']
+    },
+    'waitress:complain:restaurant': {
+        interaction: 'You hated this restaurant and decides to call the waitress to let her know about it',
+        contexts: ['waitress']
+    },
+    'waitress:complain:food': {
+        interaction: 'You did not liked the food and decides to call the waitress to let her know about it',
+        contexts: ['waitress', 'order']
+    },
 };
 var interactionsWithFriend = {
-    'friend:ask:payForDinner': 'You ask Jonas if he can pay the bill for the dinner',
-    'friend:ask:giveGoodTip': 'You ask Jonas to give a good tip for the waitress',
-    'friend:talk:boats': 'You start a conversation about boats with Jonas. Jonas really likes to talk about boats',
-    'friend:talk:cars': 'You start a conversation about cars with Jonas. Jonas really likes to talk about cars',
-    'friend:talk:photography': 'You start a conversation about photography with Jonas. Jonas really likes to talk about photography',
-    'friend:talk:computers': 'You start a conversation about computers with Jonas. Jonas hates to talk about computers',
-    'friend:talk:pets': 'You start a conversation about pets with Jonas. Jonas hates to talk about pets',
-    'friend:talk:tv': 'You start a conversation about tv shows with Jonas. Jonas hates to talk about tv shows',
-    'friend:talk:weather': 'You start a conversation about the weather with Jonas',
-    'friend:talk:food': 'You start a conversation about the food from this restaurant with Jonas',
-    'friend:talk:drink': 'You start a conversation about the drinks from this restaurant with Jonas',
-    'friend:compliment:intelligence': 'You compliment Jonas on his intelligence',
-    'friend:compliment:appearance': 'You compliment Jonas on his appearance',
-    'friend:compliment:personality': 'You compliment Jonas on his personality',
+    'friend:ask:payForDinner': {
+        interaction: 'You ask Jonas if he can pay the bill for the dinner',
+        contexts: ['friend', 'payment'],
+    },
+    'friend:ask:giveGoodTip': {
+        interaction: 'You ask Jonas to give a good tip for the waitress',
+        contexts: ['friend', 'payment'],
+    },
+    'friend:talk:boats': {
+        interaction: 'You start a conversation about boats with Jonas. Jonas really likes to talk about boats',
+        contexts: ['friend'],
+    },
+    'friend:talk:cars': {
+        interaction: 'You start a conversation about cars with Jonas. Jonas really likes to talk about cars',
+        contexts: ['friend'],
+    },
+    'friend:talk:photography': {
+        interaction: 'You start a conversation about photography with Jonas. Jonas really likes to talk about photography',
+        contexts: ['waitress']
+    },
+    'friend:talk:computers': {
+        interaction: 'You start a conversation about computers with Jonas. Jonas hates to talk about computers',
+        contexts: ['friend'],
+    },
+    'friend:talk:pets': {
+        interaction: 'You start a conversation about pets with Jonas. Jonas hates to talk about pets',
+        contexts: ['friend'],
+    },
+    'friend:talk:tv': {
+        interaction: 'You start a conversation about tv shows with Jonas. Jonas hates to talk about tv shows',
+        contexts: ['waitress']
+    },
+    'friend:talk:weather': {
+        interaction: 'You start a conversation about the weather with Jonas',
+        contexts: ['friend'],
+    },
+    'friend:talk:food': {
+        interaction: 'You start a conversation about the food from this restaurant with Jonas',
+        contexts: ['friend', 'order'],
+    },
+    'friend:talk:drink': {
+        interaction: 'You start a conversation about the drinks from this restaurant with Jonas',
+        contexts: ['friend', 'order'],
+    },
+    'friend:compliment:intelligence': {
+        interaction: 'You compliment Jonas on his intelligence',
+        contexts: ['waitress']
+    },
+    'friend:compliment:appearance': {
+        interaction: 'You compliment Jonas on his appearance',
+        contexts: ['friend'],
+    },
+    'friend:compliment:personality': {
+        interaction: 'You compliment Jonas on his personality',
+        contexts: ['friend'],
+    },
+};
+var interactionsWithNoone = {
+    'you:go:employeeBathroom': {
+        interaction: 'You can finally go to the employees bathroom, and getting there you see something that changes your life forever',
+        contexts: ['bathroom'],
+    },
 };
 function textWrapper(restaurantDescription, facts, talkingTo, action) {
     return "This scene happens at the restaurant. You are having dinner with your friend Jonas.\n\nRestaurant description:\n\n".concat(restaurantDescription, "\n\nThis is a dialog between you and ").concat(talkingTo, ".\nIt is very important to notice that:\n").concat(facts.map(function (fact) { return '- ' + fact; }).join('\n'), "\n\n").concat(action, ". This is how the scene goes:");
@@ -69909,17 +70049,23 @@ function dispatchActionQueryRestaurantDescription(dispatch, openAiKey, restauran
 }
 function dispatchPlayerAction(dispatch, currentState, openAiKey, action) {
     return __awaiter(this, void 0, void 0, function () {
-        var talkingTo, facts, interaction, interaction;
+        var talkingTo, interaction, facts, interaction, facts, interaction, facts;
         return __generator(this, function (_a) {
             talkingTo = action.startsWith('waitress') ? 'the waitress' : 'Jonas';
-            facts = getFactsFromGamestate(currentState);
             if (action.startsWith('waitress')) {
                 interaction = interactionsWithWaitress[action];
-                interactWithWaitress(dispatch, openAiKey, textWrapper(currentState.restaurantDescription, facts, talkingTo, interaction), action);
+                facts = getFactsFromGamestate(currentState, interaction.contexts);
+                interactWithWaitress(dispatch, openAiKey, textWrapper(currentState.restaurantDescription, facts, talkingTo, interaction.interaction), action);
             }
             if (action.startsWith('friend')) {
                 interaction = interactionsWithFriend[action];
-                interactWithFriend(dispatch, openAiKey, textWrapper(currentState.restaurantDescription, facts, talkingTo, interaction), action);
+                facts = getFactsFromGamestate(currentState, interaction.contexts);
+                interactWithFriend(dispatch, openAiKey, textWrapper(currentState.restaurantDescription, facts, talkingTo, interaction.interaction), action);
+            }
+            if (action.startsWith('you')) {
+                interaction = interactionsWithNoone[action];
+                facts = getFactsFromGamestate(currentState, interaction.contexts);
+                doSomething(dispatch, openAiKey, textWrapper(currentState.restaurantDescription, facts, talkingTo, interaction.interaction));
             }
             return [2 /*return*/];
         });
@@ -70234,6 +70380,10 @@ var interactions = [
                         name: 'Bill',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_AttachMoney__WEBPACK_IMPORTED_MODULE_6__["default"], null),
                         playerAction: 'waitress:ask:bill',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Bathroom',
@@ -70254,11 +70404,19 @@ var interactions = [
                         name: 'Service',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_LocalDining__WEBPACK_IMPORTED_MODULE_9__["default"], null),
                         playerAction: 'waitress:compliment:service',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Waitress',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Woman__WEBPACK_IMPORTED_MODULE_10__["default"], null),
                         playerAction: 'waitress:compliment:waitress',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Restaurant',
@@ -70269,6 +70427,10 @@ var interactions = [
                         name: 'Food',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_SetMeal__WEBPACK_IMPORTED_MODULE_12__["default"], null),
                         playerAction: 'waitress:compliment:food',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                 ]
             },
@@ -70279,11 +70441,19 @@ var interactions = [
                         name: 'Service',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_LocalDining__WEBPACK_IMPORTED_MODULE_9__["default"], null),
                         playerAction: 'waitress:complain:service',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Waitress',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Woman__WEBPACK_IMPORTED_MODULE_10__["default"], null),
                         playerAction: 'waitress:complain:waitress',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Restaurant',
@@ -70294,6 +70464,10 @@ var interactions = [
                         name: 'Food',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_SetMeal__WEBPACK_IMPORTED_MODULE_12__["default"], null),
                         playerAction: 'waitress:complain:food',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                 ]
             }
@@ -70309,6 +70483,10 @@ var interactions = [
                         name: 'To pay for the dinner',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_AttachMoney__WEBPACK_IMPORTED_MODULE_6__["default"], null),
                         playerAction: 'friend:ask:payForDinner',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'To give the waitress a good tip',
@@ -70359,11 +70537,19 @@ var interactions = [
                         name: 'Food',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_5__["default"], null),
                         playerAction: 'friend:talk:food',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Drink',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_SportsBar__WEBPACK_IMPORTED_MODULE_21__["default"], null),
                         playerAction: 'friend:talk:drink',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order !== '';
+                        },
                     },
                 ]
             },
@@ -70399,6 +70585,9 @@ var interactions = [
                         name: 'Employees bathroom',
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__["default"], null),
                         playerAction: 'you:go:employeeBathroom',
+                        condition: function (useAppSelector) {
+                            return useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectPlayerHasKey);
+                        },
                     },
                     {
                         name: 'Home',
@@ -70410,6 +70599,16 @@ var interactions = [
                         icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__["default"], null),
                         playerAction: 'you:go:outside',
                     }
+                ]
+            },
+            {
+                action: 'Do',
+                options: [
+                    {
+                        name: 'Eat',
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__["default"], null),
+                        playerAction: 'you:go:employeeBathroom',
+                    },
                 ]
             },
         ]
