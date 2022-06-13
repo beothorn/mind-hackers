@@ -28,7 +28,7 @@ import Box from '@mui/material/Box';
 
 import { PlayerAction } from '../gameStateSlice';
 
-import { selectOrder } from '../gameStateSlice';
+import { selectOrder, selectPlayerHasKey } from '../gameStateSlice';
 
 const interactions = [
     {
@@ -55,6 +55,10 @@ const interactions = [
                         name: 'Bill',
                         icon: <AttachMoneyIcon />,
                         playerAction: 'waitress:ask:bill' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Bathroom',
@@ -75,11 +79,19 @@ const interactions = [
                         name: 'Service',
                         icon: <LocalDiningIcon />,
                         playerAction: 'waitress:compliment:service' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Waitress',
                         icon: <WomanIcon />,
                         playerAction: 'waitress:compliment:waitress' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Restaurant',
@@ -90,6 +102,10 @@ const interactions = [
                         name: 'Food',
                         icon: <SetMealIcon />,
                         playerAction: 'waitress:compliment:food' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                 ]
             },
@@ -100,11 +116,19 @@ const interactions = [
                         name: 'Service',
                         icon: <LocalDiningIcon />,
                         playerAction: 'waitress:complain:service' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Waitress',
                         icon: <WomanIcon />,
                         playerAction: 'waitress:complain:waitress' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Restaurant',
@@ -115,6 +139,10 @@ const interactions = [
                         name: 'Food',
                         icon: <SetMealIcon />,
                         playerAction: 'waitress:complain:food' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                 ]
             }
@@ -130,6 +158,10 @@ const interactions = [
                         name: 'To pay for the dinner',
                         icon: <AttachMoneyIcon />,
                         playerAction: 'friend:ask:payForDinner' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'To give the waitress a good tip',
@@ -180,11 +212,19 @@ const interactions = [
                         name: 'Food',
                         icon: <FastfoodIcon />,
                         playerAction: 'friend:talk:food' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                     {
                         name: 'Drink',
                         icon: <SportsBarIcon />,
                         playerAction: 'friend:talk:drink' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order !== '';
+                        },
                     },
                 ]
             },
@@ -220,6 +260,9 @@ const interactions = [
                         name: 'Employees bathroom',
                         icon: <FaceRetouchingNaturalIcon />,
                         playerAction: 'you:go:employeeBathroom' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            return useAppSelector(selectPlayerHasKey);
+                        },
                     },
                     {
                         name: 'Home',
@@ -231,6 +274,16 @@ const interactions = [
                         icon: <FaceRetouchingNaturalIcon />,
                         playerAction: 'you:go:outside' as PlayerAction,
                     }
+                ]
+            },
+            {
+                action: 'Do',
+                options: [
+                    {
+                        name: 'Eat',
+                        icon: <FaceRetouchingNaturalIcon />,
+                        playerAction: 'you:go:employeeBathroom' as PlayerAction,
+                    },
                 ]
             },
         ]
