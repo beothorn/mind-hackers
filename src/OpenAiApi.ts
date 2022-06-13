@@ -3,9 +3,9 @@ import axios from 'axios';
 const openAiUrl = 'https://api.openai.com/v1';
 const engine = 'text-davinci-002';
 
-export const getCompletion = (openAiKey: string, query: string) => axios.post(`${openAiUrl}/engines/${engine}/completions`, {
+const getCompletionWithSize = (openAiKey: string, query: string, size: number) => axios.post(`${openAiUrl}/engines/${engine}/completions`, {
     "prompt": query,
-    "max_tokens": 256,
+    "max_tokens": size,
     "temperature": 0.9,
     "top_p": 1,
     "frequency_penalty": 0,
@@ -20,6 +20,10 @@ export const getCompletion = (openAiKey: string, query: string) => axios.post(`$
     console.log({query, text});
     return text;
 });
+
+export const getSmallCompletion = (openAiKey: string, query: string) => getCompletionWithSize(openAiKey, query, 30);
+
+export const getCompletion = (openAiKey: string, query: string) => getCompletionWithSize(openAiKey, query, 256);
 
 export const answerQuestion = (openAiKey: string, situation: string, question: string) => axios.post(`${openAiUrl}/engines/${engine}/completions`, {
     "prompt": `===

@@ -69350,6 +69350,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "answerQuestion": () => (/* binding */ answerQuestion),
 /* harmony export */   "getCompletion": () => (/* binding */ getCompletion),
+/* harmony export */   "getSmallCompletion": () => (/* binding */ getSmallCompletion),
 /* harmony export */   "listEngines": () => (/* binding */ listEngines)
 /* harmony export */ });
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
@@ -69357,9 +69358,9 @@ __webpack_require__.r(__webpack_exports__);
 
 var openAiUrl = 'https://api.openai.com/v1';
 var engine = 'text-davinci-002';
-var getCompletion = function (openAiKey, query) { return axios__WEBPACK_IMPORTED_MODULE_0___default().post("".concat(openAiUrl, "/engines/").concat(engine, "/completions"), {
+var getCompletionWithSize = function (openAiKey, query, size) { return axios__WEBPACK_IMPORTED_MODULE_0___default().post("".concat(openAiUrl, "/engines/").concat(engine, "/completions"), {
     "prompt": query,
-    "max_tokens": 256,
+    "max_tokens": size,
     "temperature": 0.9,
     "top_p": 1,
     "frequency_penalty": 0,
@@ -69374,6 +69375,8 @@ var getCompletion = function (openAiKey, query) { return axios__WEBPACK_IMPORTED
     console.log({ query: query, text: text });
     return text;
 }); };
+var getSmallCompletion = function (openAiKey, query) { return getCompletionWithSize(openAiKey, query, 30); };
+var getCompletion = function (openAiKey, query) { return getCompletionWithSize(openAiKey, query, 256); };
 var answerQuestion = function (openAiKey, situation, question) { return axios__WEBPACK_IMPORTED_MODULE_0___default().post("".concat(openAiUrl, "/engines/").concat(engine, "/completions"), {
     "prompt": "===\n".concat(situation, "\n===\nFrom this scene:\n").concat(question, "(yes or no)\n"),
     "max_tokens": 3,
@@ -69624,6 +69627,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "actionIncreaseFriendTrustOnPlayer": () => (/* binding */ actionIncreaseFriendTrustOnPlayer),
 /* harmony export */   "actionIncreaseWaitressTrustOnPlayer": () => (/* binding */ actionIncreaseWaitressTrustOnPlayer),
 /* harmony export */   "actionSetLastText": () => (/* binding */ actionSetLastText),
+/* harmony export */   "actionSetOrder": () => (/* binding */ actionSetOrder),
 /* harmony export */   "actionSetPlayerHasBathroomKey": () => (/* binding */ actionSetPlayerHasBathroomKey),
 /* harmony export */   "actionSetRestaurantDescription": () => (/* binding */ actionSetRestaurantDescription),
 /* harmony export */   "actionSetRestaurantType": () => (/* binding */ actionSetRestaurantType),
@@ -69633,6 +69637,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "gameStateSlice": () => (/* binding */ gameStateSlice),
 /* harmony export */   "selectGameState": () => (/* binding */ selectGameState),
 /* harmony export */   "selectLastText": () => (/* binding */ selectLastText),
+/* harmony export */   "selectOrder": () => (/* binding */ selectOrder),
 /* harmony export */   "selectRestaurantDescription": () => (/* binding */ selectRestaurantDescription),
 /* harmony export */   "selectRestaurantType": () => (/* binding */ selectRestaurantType)
 /* harmony export */ });
@@ -69680,32 +69685,33 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
+var waitressHasKey = 'The waitress have the key to the employees bathroom.';
+var playerHasKey = 'You have the key to the employees bathroom.';
+var friendWantsToPay = 'Jonas wants to pay the dinner for you.';
+var friendDontWantToPay = 'Jonas does not want to pay the dinner for you.';
+var friendWillGiveTheWaitressAGoodTip = 'Jonas wants to give the waitress a very good tip.';
+var friendWontGiveTheWaitressAGoodTip = 'Jonas does not want to give a good tip for the waitress, just the regular amount.';
 var initialState = {
     lastText: 'Loading...',
-    facts: [
+    facts: new Set([
         'You really need to go to the bathroom.',
         'You forgot to bring your wallet',
-    ],
+        waitressHasKey,
+        friendDontWantToPay,
+        friendWontGiveTheWaitressAGoodTip
+    ]),
+    order: '',
     restaurantDescription: '',
     restaurantType: '',
-    player: {
-        hasBathroomKey: false,
-    },
     waitress: {
         player: {
-            thinksIsAnEmployee: false,
             trust: 0,
         },
     },
     friend: {
-        willPayForDinner: false,
-        willGiveAGoodTip: false,
         player: {
             trust: 5,
         },
-        waitress: {
-            isSatisfiedWithTheService: true,
-        }
     }
 };
 var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlice)({
@@ -69716,7 +69722,14 @@ var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlic
             state.restaurantDescription = action.payload;
         },
         setPlayerHasBathroomKey: function (state, action) {
-            state.player.hasBathroomKey = action.payload;
+            if (action) {
+                state.facts.delete(waitressHasKey);
+                state.facts.add(playerHasKey);
+            }
+            else {
+                state.facts.delete(playerHasKey);
+                state.facts.add(waitressHasKey);
+            }
         },
         increaseWaitressTrustOnPlayer: function (state) {
             state.waitress.player.trust += 1;
@@ -69732,11 +69745,16 @@ var gameStateSlice = (0,_reduxjs_toolkit__WEBPACK_IMPORTED_MODULE_3__.createSlic
         setRestaurantType: function (state, action) {
             state.restaurantType = action.payload;
         },
+        setOrder: function (state, action) {
+            state.order = action.payload;
+        },
         friendPaysForDinner: function (state) {
-            state.friend.willPayForDinner = true;
+            state.facts.delete(friendDontWantToPay);
+            state.facts.add(friendWantsToPay);
         },
         friendWillGiveAGoodTip: function (state) {
-            state.friend.willGiveAGoodTip = true;
+            state.facts.delete(friendWontGiveTheWaitressAGoodTip);
+            state.facts.add(friendWillGiveTheWaitressAGoodTip);
         },
         increaseFriendTrustOnPlayer: function (state) {
             state.friend.player.trust += 1;
@@ -69752,9 +69770,11 @@ var selectGameState = function (state) { return state.gameState; };
 var selectLastText = function (state) { return state.gameState.lastText; };
 var selectRestaurantDescription = function (state) { return state.gameState.restaurantDescription; };
 var selectRestaurantType = function (state) { return state.gameState.restaurantType; };
+var selectOrder = function (state) { return state.gameState.order; };
 var actionSetRestaurantDescription = function (description) { return ({ type: 'gameState/setRestaurantDescription', payload: description }); };
 var actionSetPlayerHasBathroomKey = function (hasBathroomKey) { return ({ type: 'gameState/setPlayerHasBathroomKey', payload: hasBathroomKey }); };
 var actionSetRestaurantType = function (restaurantType) { return ({ type: 'gameState/setRestaurantType', payload: restaurantType }); };
+var actionSetOrder = function (restaurantType) { return ({ type: 'gameState/setOrder', payload: restaurantType }); };
 var actionIncreaseWaitressTrustOnPlayer = function () { return ({ type: 'gameState/increaseWaitressTrustOnPlayer' }); };
 var actionDecreaseWaitressTrustOnPlayer = function () { return ({ type: 'gameState/decreaseWaitressTrustOnPlayer' }); };
 var actionFriendPaysForDinner = function () { return ({ type: 'gameState/friendPaysForDinner' }); };
@@ -69776,121 +69796,71 @@ function trust(person1, person2, score) {
 }
 function getFactsFromGamestate(gameState) {
     var facts = [];
-    facts.push(gameState.player.hasBathroomKey ?
-        'You have the key to the employees bathroom.'
-        : 'The waitress have the key to the employees bathroom.');
-    facts.push(gameState.waitress.player.thinksIsAnEmployee ?
-        'The waitress thinks you work at this restaurant..'
-        : 'The waitress knows you do not work at this restaurant.');
-    facts.push(gameState.friend.willPayForDinner ?
-        'Jonas wants to pay the dinner for you.'
-        : 'Jonas does not want to pay the dinner for you.');
-    facts.push(gameState.friend.willGiveAGoodTip ?
-        'Jonas wants to give the waitress a very good tip.'
-        : 'Jonas does not want to give a good tip for the waitress, just the regular amount.');
-    facts.push(gameState.friend.waitress.isSatisfiedWithTheService ?
-        'Jonas is satisfied with the service.'
-        : 'Jonas is unhappy with the service.');
     facts.push(trust('The waitress', 'you', gameState.waitress.player.trust));
     facts.push(trust('The waitress', 'Jonas', gameState.waitress.player.trust));
     facts.push(trust('Jonas', 'you', gameState.friend.player.trust));
     facts.push('On this restaurant you pay the bill at the end of your meal, so they don\'t pay the bill in this scene.');
-    return facts.concat(gameState.facts);
+    return facts.concat(Array.from(gameState.facts));
+}
+function inquirer(openAiKey, finalText) {
+    return function (question, ifTrue, ifFalse) {
+        return (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, question).then(function (a) { return a ? ifTrue() : (ifFalse && ifFalse()); });
+    };
 }
 function interactWithWaitress(dispatch, openAiKey, openAiQuery, action) {
     dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('showText'));
-    (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery)
-        .then(function (textResult) {
+    (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery).then(function (textResult) {
         var finalText = "".concat(openAiQuery, "\n").concat(textResult);
-        if (action === 'waitress:ask:employeeBathroom') {
-            (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, 'Did the waitress gave you the key to the employees bathroom?')
-                .then(function (answer) {
-                if (answer) {
-                    (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                        dispatch(actionSetPlayerHasBathroomKey(true));
-                        dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('You now you have the key to the employees bathroom.'));
-                    });
-                }
-            });
+        var furtherQuestion = inquirer(openAiKey, finalText);
+        if (action === 'waitress:order:placeOrder') {
+            (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getSmallCompletion)(openAiKey, "".concat(finalText, "\nThe waitress wrote down the order:\n-"))
+                .then(function (textResult) { return dispatch(actionSetOrder(textResult)); });
         }
-        (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, 'Does the waitress liked what you said?')
-            .then(function (answer) {
-            if (answer) {
-                (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                    dispatch(actionIncreaseWaitressTrustOnPlayer());
-                    dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('You gained more trust from the waitress.'));
-                });
-            }
-            else {
-                (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, "Is the waitress annoyed by what you said?")
-                    .then(function (answer) {
-                    if (answer) {
-                        (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                            dispatch(actionDecreaseWaitressTrustOnPlayer());
-                            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('The waitress is annoyed by this interaction.'));
-                        });
-                    }
-                });
-            }
-        });
+        if (action === 'waitress:ask:employeeBathroom') {
+            furtherQuestion('Did the waitress gave you the key to the employees bathroom?', function () { return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+                dispatch(actionSetPlayerHasBathroomKey(true));
+                dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('You now you have the key to the employees bathroom.'));
+            }); });
+        }
+        furtherQuestion('Does the waitress liked what you said?', function () { return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+            dispatch(actionIncreaseWaitressTrustOnPlayer());
+            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('You gained more trust from the waitress.'));
+        }); }, function () { return furtherQuestion("Is the waitress annoyed by what you said?", function () { return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+            dispatch(actionDecreaseWaitressTrustOnPlayer());
+            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('The waitress is annoyed by this interaction.'));
+        }); }); });
         dispatch(actionSetLastText(textResult));
-    })
-        .catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
+    }).catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
 }
 function interactWithFriend(dispatch, openAiKey, openAiQuery, action) {
     dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('showText'));
-    (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery)
-        .then(function (textResult) {
+    (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.getCompletion)(openAiKey, openAiQuery).then(function (textResult) {
         var finalText = "".concat(openAiQuery, "\n").concat(textResult);
+        var furtherQuestion = inquirer(openAiKey, finalText);
         if (action === 'friend:ask:payForDinner') {
-            (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, "Did Jonas agreed to pay for dinner?")
-                .then(function (answer) {
-                if (answer) {
-                    (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                        dispatch(actionFriendPaysForDinner());
-                        dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas will pay the dinner.'));
-                    });
-                }
-            });
+            furtherQuestion("Did Jonas agreed to pay for dinner?", function () { return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+                dispatch(actionFriendPaysForDinner());
+                dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas will pay the dinner.'));
+            }); });
         }
         if (action === 'friend:ask:giveGoodTip') {
-            (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, "Did Jonas agreed to give the waitress a good tip?")
-                .then(function (answer) {
-                if (answer) {
-                    (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                        dispatch(actionFriendWillGiveAGoodTip());
-                        dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas will give the waitress a good tip.'));
-                    });
-                }
-            });
+            furtherQuestion("Did Jonas agreed to give the waitress a good tip?", function () { return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+                dispatch(actionFriendWillGiveAGoodTip());
+                dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas will give the waitress a good tip.'));
+            }); });
         }
-        (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, "Does Jonas liked what you said?")
-            .then(function (answer) {
-            if (answer) {
-                (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                    dispatch(actionIncreaseFriendTrustOnPlayer());
-                    dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('You gained more trust from Jonas.'));
-                });
-            }
-            else {
-                (0,_OpenAiApi__WEBPACK_IMPORTED_MODULE_2__.answerQuestion)(openAiKey, finalText, "Is Jonas annoyed by what you said?")
-                    .then(function (answer) {
-                    if (answer) {
-                        (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
-                            dispatch(actionDecreaseFriendTrustOnPlayer());
-                            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas is annoyed by this interaction.'));
-                        });
-                    }
-                });
-            }
-        });
+        furtherQuestion("Does Jonas liked what you said?", function () { return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+            dispatch(actionIncreaseFriendTrustOnPlayer());
+            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('You gained more trust from Jonas.'));
+        }); }, function () { return furtherQuestion("Is Jonas annoyed by what you said?", function () { return (0,react_redux__WEBPACK_IMPORTED_MODULE_0__.batch)(function () {
+            dispatch(actionDecreaseFriendTrustOnPlayer());
+            dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionAddMessage)('Jonas is annoyed by this interaction.'));
+        }); }); });
         dispatch(actionSetLastText(textResult));
-    })
-        .catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
+    }).catch(function () { return dispatch((0,_appStateSlice__WEBPACK_IMPORTED_MODULE_1__.actionSetScreen)('error')); });
 }
 var interactionsWithWaitress = {
-    'waitress:order:food': 'You call the waitress to order food, but do not order drinks',
-    'waitress:order:drink': 'You call the waitress to order only the drinks',
+    'waitress:order:placeOrder': 'You call the waitress to place the order',
     'waitress:ask:bill': 'You call the waitress and asks for the bill',
     'waitress:ask:bathroom': 'You call the waitress and asks to use the bathroom. There is no bathroom on this restaurant, only the bathroom for employees',
     'waitress:ask:employeeBathroom': 'You call the waitress and asks to use the employees bathroom. The bathroom is only for employees with the key',
@@ -70129,14 +70099,32 @@ function ExpandableList(_a) {
     var handleOptionClick = function (playerAction) {
         (0,_gameStateSlice__WEBPACK_IMPORTED_MODULE_3__.dispatchPlayerAction)(dispatch, gameState, openAiKey, playerAction);
     };
+    //if option has no condition then it is true, else is the value of the condition
+    var optionsAvailableCount = 0;
+    for (var _i = 0, options_1 = options; _i < options_1.length; _i++) {
+        var o = options_1[_i];
+        if (o.condition === undefined) {
+            optionsAvailableCount++;
+        }
+        else {
+            if (o.condition(_hooks__WEBPACK_IMPORTED_MODULE_1__.useAppSelector)) {
+                optionsAvailableCount++;
+            }
+        }
+    }
+    if (optionsAvailableCount === 0)
+        return react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null);
     return react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_List__WEBPACK_IMPORTED_MODULE_4__["default"], null,
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemButton__WEBPACK_IMPORTED_MODULE_5__["default"], { sx: { pl: 8 }, onClick: handleClick },
             react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemText__WEBPACK_IMPORTED_MODULE_6__["default"], { primary: action }),
             open ? react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_icons_material_ExpandLess__WEBPACK_IMPORTED_MODULE_7__["default"], null) : react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_icons_material_ExpandMore__WEBPACK_IMPORTED_MODULE_8__["default"], null)),
         react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_Collapse__WEBPACK_IMPORTED_MODULE_9__["default"], { in: open, timeout: "auto", unmountOnExit: true },
-            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_List__WEBPACK_IMPORTED_MODULE_4__["default"], null, options.map(function (o) { return react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemButton__WEBPACK_IMPORTED_MODULE_5__["default"], { onClick: function () { return handleOptionClick(o.playerAction); }, key: action + o.name, sx: { pl: 12 } },
-                react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemIcon__WEBPACK_IMPORTED_MODULE_10__["default"], null, o.icon),
-                react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemText__WEBPACK_IMPORTED_MODULE_6__["default"], { primary: o.name })); }))));
+            react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_List__WEBPACK_IMPORTED_MODULE_4__["default"], null, options.map(function (o) {
+                return o.condition && !o.condition(_hooks__WEBPACK_IMPORTED_MODULE_1__.useAppSelector) ? react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null) :
+                    react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemButton__WEBPACK_IMPORTED_MODULE_5__["default"], { onClick: function () { return handleOptionClick(o.playerAction); }, key: action + o.name, sx: { pl: 12 } },
+                        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemIcon__WEBPACK_IMPORTED_MODULE_10__["default"], null, o.icon),
+                        react__WEBPACK_IMPORTED_MODULE_0___default().createElement(_mui_material_ListItemText__WEBPACK_IMPORTED_MODULE_6__["default"], { primary: o.name }));
+            }))));
 }
 
 
@@ -70158,10 +70146,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _fontsource_roboto_300_css__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @fontsource/roboto/300.css */ "./node_modules/@fontsource/roboto/300.css");
-/* harmony import */ var _mui_material_List__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/material/List */ "./node_modules/@mui/material/List/List.js");
-/* harmony import */ var _mui_material_ListSubheader__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/material/ListSubheader */ "./node_modules/@mui/material/ListSubheader/ListSubheader.js");
-/* harmony import */ var _mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @mui/icons-material/Fastfood */ "./node_modules/@mui/icons-material/Fastfood.js");
-/* harmony import */ var _mui_icons_material_SportsBar__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/icons-material/SportsBar */ "./node_modules/@mui/icons-material/SportsBar.js");
+/* harmony import */ var _mui_material_List__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! @mui/material/List */ "./node_modules/@mui/material/List/List.js");
+/* harmony import */ var _mui_material_ListSubheader__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! @mui/material/ListSubheader */ "./node_modules/@mui/material/ListSubheader/ListSubheader.js");
+/* harmony import */ var _mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @mui/icons-material/Fastfood */ "./node_modules/@mui/icons-material/Fastfood.js");
+/* harmony import */ var _mui_icons_material_SportsBar__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/icons-material/SportsBar */ "./node_modules/@mui/icons-material/SportsBar.js");
 /* harmony import */ var _mui_icons_material_AttachMoney__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @mui/icons-material/AttachMoney */ "./node_modules/@mui/icons-material/AttachMoney.js");
 /* harmony import */ var _mui_icons_material_Wc__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @mui/icons-material/Wc */ "./node_modules/@mui/icons-material/Wc.js");
 /* harmony import */ var _mui_icons_material_Key__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @mui/icons-material/Key */ "./node_modules/@mui/icons-material/Key.js");
@@ -70177,10 +70165,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mui_icons_material_Pets__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! @mui/icons-material/Pets */ "./node_modules/@mui/icons-material/Pets.js");
 /* harmony import */ var _mui_icons_material_Tv__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! @mui/icons-material/Tv */ "./node_modules/@mui/icons-material/Tv.js");
 /* harmony import */ var _mui_icons_material_Cloud__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! @mui/icons-material/Cloud */ "./node_modules/@mui/icons-material/Cloud.js");
-/* harmony import */ var _mui_icons_material_Psychology__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! @mui/icons-material/Psychology */ "./node_modules/@mui/icons-material/Psychology.js");
-/* harmony import */ var _mui_icons_material_EmojiEmotions__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/icons-material/EmojiEmotions */ "./node_modules/@mui/icons-material/EmojiEmotions.js");
-/* harmony import */ var _mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/icons-material/FaceRetouchingNatural */ "./node_modules/@mui/icons-material/FaceRetouchingNatural.js");
-/* harmony import */ var _mui_material_Box__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/material/Box */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _mui_icons_material_Psychology__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! @mui/icons-material/Psychology */ "./node_modules/@mui/icons-material/Psychology.js");
+/* harmony import */ var _mui_icons_material_EmojiEmotions__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! @mui/icons-material/EmojiEmotions */ "./node_modules/@mui/icons-material/EmojiEmotions.js");
+/* harmony import */ var _mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! @mui/icons-material/FaceRetouchingNatural */ "./node_modules/@mui/icons-material/FaceRetouchingNatural.js");
+/* harmony import */ var _mui_material_Box__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! @mui/material/Box */ "./node_modules/@mui/material/Box/Box.js");
+/* harmony import */ var _gameStateSlice__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../gameStateSlice */ "./src/gameStateSlice.ts");
 var __assign = (undefined && undefined.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -70219,6 +70208,7 @@ var __assign = (undefined && undefined.__assign) || function () {
 
 
 
+
 var interactions = [
     {
         character: 'Waitress',
@@ -70227,14 +70217,13 @@ var interactions = [
                 action: 'Order',
                 options: [
                     {
-                        name: 'Food',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_4__["default"], null),
-                        playerAction: 'waitress:order:food',
-                    },
-                    {
-                        name: 'Drink',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_SportsBar__WEBPACK_IMPORTED_MODULE_5__["default"], null),
-                        playerAction: 'waitress:order:drink',
+                        name: 'Place Order',
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_5__["default"], null),
+                        playerAction: 'waitress:order:placeOrder',
+                        condition: function (useAppSelector) {
+                            var order = useAppSelector(_gameStateSlice__WEBPACK_IMPORTED_MODULE_4__.selectOrder);
+                            return order === '';
+                        },
                     },
                 ]
             },
@@ -70368,12 +70357,12 @@ var interactions = [
                     },
                     {
                         name: 'Food',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_4__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Fastfood__WEBPACK_IMPORTED_MODULE_5__["default"], null),
                         playerAction: 'friend:talk:food',
                     },
                     {
                         name: 'Drink',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_SportsBar__WEBPACK_IMPORTED_MODULE_5__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_SportsBar__WEBPACK_IMPORTED_MODULE_21__["default"], null),
                         playerAction: 'friend:talk:drink',
                     },
                 ]
@@ -70383,17 +70372,17 @@ var interactions = [
                 options: [
                     {
                         name: 'Intelligence',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Psychology__WEBPACK_IMPORTED_MODULE_21__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_Psychology__WEBPACK_IMPORTED_MODULE_22__["default"], null),
                         playerAction: 'friend:compliment:intelligence',
                     },
                     {
                         name: 'Appearance',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__["default"], null),
                         playerAction: 'friend:compliment:appearance',
                     },
                     {
                         name: 'Personality',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_EmojiEmotions__WEBPACK_IMPORTED_MODULE_23__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_EmojiEmotions__WEBPACK_IMPORTED_MODULE_24__["default"], null),
                         playerAction: 'friend:compliment:personality',
                     },
                 ]
@@ -70408,17 +70397,17 @@ var interactions = [
                 options: [
                     {
                         name: 'Employees bathroom',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__["default"], null),
                         playerAction: 'you:go:employeeBathroom',
                     },
                     {
                         name: 'Home',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__["default"], null),
                         playerAction: 'you:go:home',
                     },
                     {
                         name: 'Outside',
-                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_22__["default"], null),
+                        icon: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_icons_material_FaceRetouchingNatural__WEBPACK_IMPORTED_MODULE_23__["default"], null),
                         playerAction: 'you:go:outside',
                     }
                 ]
@@ -70427,8 +70416,9 @@ var interactions = [
     },
 ];
 function SelectAction() {
-    return react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_material_Box__WEBPACK_IMPORTED_MODULE_24__["default"], { sx: { bgcolor: 'background.paper' } },
-        react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_material_List__WEBPACK_IMPORTED_MODULE_25__["default"], { subheader: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_material_ListSubheader__WEBPACK_IMPORTED_MODULE_26__["default"], null, "Next Action") }, interactions.map(function (i) { return react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_ExpandableElement__WEBPACK_IMPORTED_MODULE_1__.ExpandableElement, { key: i.character, action: i.character }, i.interactions.map(function (interactionGroup) { return react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_ExpandableList__WEBPACK_IMPORTED_MODULE_0__.ExpandableList, __assign({ key: interactionGroup.action }, interactionGroup)); })); })));
+    return react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_material_Box__WEBPACK_IMPORTED_MODULE_25__["default"], { sx: { bgcolor: 'background.paper' } },
+        react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_material_List__WEBPACK_IMPORTED_MODULE_26__["default"], { subheader: react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_mui_material_ListSubheader__WEBPACK_IMPORTED_MODULE_27__["default"], null, "Next Action") }, interactions
+            .map(function (i) { return react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_ExpandableElement__WEBPACK_IMPORTED_MODULE_1__.ExpandableElement, { key: i.character, action: i.character }, i.interactions.map(function (interactionGroup) { return react__WEBPACK_IMPORTED_MODULE_2___default().createElement(_ExpandableList__WEBPACK_IMPORTED_MODULE_0__.ExpandableList, __assign({ key: interactionGroup.action }, interactionGroup)); })); })));
 }
 
 

@@ -28,6 +28,8 @@ import Box from '@mui/material/Box';
 
 import { PlayerAction } from '../gameStateSlice';
 
+import { selectOrder } from '../gameStateSlice';
+
 const interactions = [
     {
         character: 'Waitress',
@@ -36,14 +38,13 @@ const interactions = [
                 action: 'Order',
                 options: [
                     {
-                        name: 'Food',
+                        name: 'Place Order',
                         icon: <FastfoodIcon />,
-                        playerAction: 'waitress:order:food' as PlayerAction,
-                    },
-                    {
-                        name: 'Drink',
-                        icon: <SportsBarIcon />,
-                        playerAction: 'waitress:order:drink' as PlayerAction,
+                        playerAction: 'waitress:order:placeOrder' as PlayerAction,
+                        condition: (useAppSelector: any) => {
+                            const order = useAppSelector(selectOrder);
+                            return order === '';
+                        },
                     },
                 ]
             },
@@ -238,8 +239,6 @@ const interactions = [
 
 export function SelectAction() {
 
-
-
     return <Box sx={{ bgcolor: 'background.paper' }}>
         <List
             subheader={
@@ -249,7 +248,8 @@ export function SelectAction() {
             }
         >
             {
-                interactions.map( i => <ExpandableElement key={i.character} action={i.character}>
+                interactions
+                    .map( i => <ExpandableElement key={i.character} action={i.character}>
                     {i.interactions.map(interactionGroup => <ExpandableList key={interactionGroup.action} {...interactionGroup}/>)}
                 </ExpandableElement>)
             }

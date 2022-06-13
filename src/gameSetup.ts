@@ -3,6 +3,25 @@
 // maybe it can have more dynamic parts
 // but still allow traditional logic
 
+function textWrapper(
+    restaurantDescription: string, 
+    facts: string[], 
+    talkingTo: string,
+    action: string
+): string {
+    return `This scene happens at the restaurant. You are having dinner with your friend Jonas.
+
+Restaurant description:
+
+${restaurantDescription}
+
+This is a dialog between you and ${talkingTo}.
+It is very important to notice that:
+${facts.map(fact => '- '+fact).join('\n')}
+
+${action}. This is how the scene goes:`;
+}
+
 const game = {
     /*
         We need to be able to update facts depending on the ai answer, for this we use an
