@@ -5,7 +5,14 @@ import type { RootState } from './store'
 
 import { listEngines } from './OpenAiApi'
 
-export type AppScreen = 'testOpenAiToken' | 'presentation' | 'selectAction' | 'showText' | 'showIntro' | 'error' | 'askRestaurantType'
+export type AppScreen = 'testOpenAiToken' | 
+  'presentation' | 
+  'selectAction' | 
+  'showText' | 
+  'showIntro' | 
+  'error' | 
+  'askRestaurantType' |
+  'insertThought';
 
 type AppState = {
   openAiKey: string,

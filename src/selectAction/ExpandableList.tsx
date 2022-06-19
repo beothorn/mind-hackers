@@ -1,4 +1,5 @@
 import React from 'react'
+import { batch } from 'react-redux';
 import List from '@mui/material/List';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -7,9 +8,9 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ListItemIcon from '@mui/material/ListItemIcon';
 
-import { useAppSelector, useAppDispatch } from '../hooks'
-import { selectOpenAiKey } from '../appStateSlice';
-import { dispatchPlayerAction, selectGameState } from '../gameStateSlice';
+import { useAppSelector, useAppDispatch } from '../hooks';
+import { actionSetScreen } from '../appStateSlice';
+import { actionSetNextPlayerAction } from '../gameStateSlice';
 import { PlayerAction } from '../PlayerActions';
 
 type Option = {
@@ -21,8 +22,6 @@ type Option = {
 
 export function ExpandableList({action, options}: {action: string, options: Option[]}) {
 
-    const openAiKey = useAppSelector(selectOpenAiKey);
-    const gameState = useAppSelector(selectGameState);
     const dispatch = useAppDispatch()
 
     const [open, setOpen] = React.useState(false);
@@ -32,7 +31,10 @@ export function ExpandableList({action, options}: {action: string, options: Opti
     };
 
     const handleOptionClick = (playerAction: PlayerAction) => {
-        dispatchPlayerAction(dispatch, gameState, openAiKey, playerAction);
+        batch(() => {
+            dispatch(actionSetNextPlayerAction(playerAction));
+            dispatch(actionSetScreen('insertThought'));
+        })
     }
 
     //if option has no condition then it is true, else is the value of the condition

@@ -2,6 +2,8 @@
 
 A game/experiment using gpt-3 api.
 
+You can skip to the conlcusion at the end or play the protype (here)[http://www.isageek.com.br/mind-hackers/]
+
 # Core idea
 
 If we use gpt3 to decide state transition, would the results be consistent? Would it be a fun game?
@@ -219,3 +221,20 @@ Talk about
  - Food
  - Drink
 Give a compliment
+
+# Conclusion
+
+It is not a feasible idea. It is too hard to keep the text and the state coherent.
+
+Some issues:
+
+GPT3 has a really hard time understanding who said what. 
+
+It usually mistake who is thinking what, even when the text explicitly says to whom that thought or line belongs to.
+
+It likes to go on tangents. I think it is because the temperature.
+
+It would be ok if it was just creative, but usually it drops whathever the text is on about very abruptly and talks about something else.
+
+Sometimes it also likes to just close the story. Even if the text says that something should not happen right now (like paying the bill), gpt3 just
+goes and tell the bill is paid and everyone went home.

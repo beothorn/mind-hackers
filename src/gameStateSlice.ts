@@ -38,6 +38,7 @@ type GameState = {
     lastText: string,
     restaurantDescription: string,
     restaurantType: string,
+    nextAction: PlayerAction,
     facts: Fact[],
     order: string,
     waitress: {
@@ -70,6 +71,7 @@ const initialState: GameState = {
     order: '',
     restaurantDescription: '',
     restaurantType: '',
+    nextAction: 'friend:talk:cars',
     waitress: {
         player: {
             trust: 0, 
@@ -134,12 +136,15 @@ export const gameStateSlice = createSlice({
         addFact: (state: GameState, action: PayloadAction<Fact>) => {
             state.facts.push(action.payload);
         },
-
+        setNextPlayerAction: (state: GameState, action: PayloadAction<PlayerAction>) => {
+          state.nextAction = action.payload;
+        },
     },
 })
 
 export const selectGameState = (state: RootState) => state.gameState;
 export const selectLastText = (state: RootState) => state.gameState.lastText;
+export const selectNextPlayerAction = (state: RootState) => state.gameState.nextAction;
 export const selectRestaurantDescription = (state: RootState) => state.gameState.restaurantDescription
 export const selectRestaurantType = (state: RootState) => state.gameState.restaurantType
 export const selectOrder = (state: RootState) => state.gameState.order
@@ -157,6 +162,8 @@ export const actionFriendWillGiveAGoodTip = () => ({type: 'gameState/friendWillG
 export const actionIncreaseFriendTrustOnPlayer = () => ({type: 'gameState/increaseFriendTrustOnPlayer'})
 export const actionDecreaseFriendTrustOnPlayer = () => ({type: 'gameState/decreaseFriendTrustOnPlayer'})
 export const actionSetLastText = (text: string) => ({type: 'gameState/setLastText', payload: text})
+export const actionSetNextPlayerAction = (nextAction: PlayerAction) => ({type: 'gameState/setNextPlayerAction', payload: nextAction})
+
 export const actionAddFact = (newFact: Fact) => ({type: 'gameState/addFact', payload: newFact})
 
 function trust(person1:string, person2:string, score: number): string{
@@ -271,6 +278,15 @@ function interactWithFriend(
 ){
     const furtherQuestion = inquirer(openAiKey, finalText);
 
+    if(action.startsWith('friend:talk')){
+        learnFact(
+            dispatch, 
+            openAiKey, 
+            finalText, 
+            ['friendConversation']
+        );
+    }
+
     if(action === 'friend:ask:payForDinner'){
         furtherQuestion(`Did Jonas agreed to pay for dinner?`,() => batch(() => {
             dispatch(actionFriendPaysForDinner());
@@ -283,15 +299,6 @@ function interactWithFriend(
             dispatch(actionFriendWillGiveAGoodTip());
             dispatch(actionAddMessage('Jonas will give the waitress a good tip.'));
         }));
-    }
-
-    if(action.startsWith('friend:talk')){
-        learnFact(
-            dispatch, 
-            openAiKey, 
-            finalText, 
-            ['friendConversation']
-        );
     }
 
     furtherQuestion(`Does Jonas liked what you said?`, () => batch(() => {
@@ -307,17 +314,28 @@ function interactWithFriend(
 
 function doSomething(
     dispatch: Dispatch<AnyAction>, 
+    openAiKey: string,
+    finalText: string,
     textResult: string,
 ){   
+    learnFact(
+        dispatch, 
+        openAiKey, 
+        finalText, 
+        ['friendConversation']
+    );
     dispatch(actionSetLastText(textResult));
 }
 
 function textWrapper(
     restaurantDescription: string, 
     facts: string[], 
-    action: string
+    thoughtInsertion: string,
+    interaction: string,
+    action: PlayerAction
 ): string {
     const talkingTo = action.startsWith('waitress') ? 'the waitress' : 'Jonas' ;
+    const though = thoughtInsertion !== '' ? ` Suddenly ${talkingTo} thought: '${thoughtInsertion}'.`:'';
 
     return `This scene happens at the restaurant. You are having dinner with your friend Jonas.
 
@@ -329,7 +347,7 @@ This is a dialog between you and ${talkingTo}.
 It is very important to notice that:
 ${facts.map(fact => '- '+fact).join('\n')}
 
-${action}. This is how the scene goes:`;
+${interaction}.${though} This is how the scene goes:`;
 }
 
 export async function dispatchActionQueryRestaurantDescription(dispatch: Dispatch<AnyAction>, openAiKey: string, restaurantType: string) {
@@ -347,7 +365,8 @@ export async function dispatchPlayerAction(
     dispatch: Dispatch<AnyAction>, 
     currentState: GameState, 
     openAiKey: string,
-    action: PlayerAction
+    action: PlayerAction,
+    thought: string
 ) {
     
     let interaction = interactions[action];
@@ -355,7 +374,9 @@ export async function dispatchPlayerAction(
     const openAiQuery = textWrapper(
         currentState.restaurantDescription, 
         facts, 
-        interaction.interaction
+        thought,
+        interaction.interaction,
+        action
     );
 
     dispatch(actionSetScreen('showText'));
@@ -383,6 +404,8 @@ export async function dispatchPlayerAction(
         if(action.startsWith('you')){
             doSomething(
                 dispatch, 
+                openAiKey, 
+                finalText,
                 textResult
             );
         }

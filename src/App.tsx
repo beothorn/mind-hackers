@@ -7,6 +7,7 @@ import { ShowText } from './showText/ShowText';
 import { TestOpenAiToken } from './testOpenAiToken/TestOpenAiToken';
 import { ErrorScreen } from './errorScreen/ErrorScreen';
 import { AskRestaurantType } from './askRestaurantType/AskRestaurantType';
+import { InsertThought } from './insertThought/InsertThought';
 
 import { useAppSelector, useAppDispatch } from './hooks'
 import { selectScreen, selectMessages, actionRemoveMessage } from './appStateSlice';
@@ -28,7 +29,7 @@ export function App() {
             enqueueSnackbar(message, {
                 variant: 'info',
                 key: message,
-                autoHideDuration: 2000,
+                autoHideDuration: 4000,
             });
         }
     }, [messages]);
@@ -55,6 +56,9 @@ export function App() {
             break;
         case 'askRestaurantType':
             currentScreenComponent = <AskRestaurantType />;
+            break;
+        case 'insertThought':
+            currentScreenComponent = <InsertThought />;
             break;
     }
 
