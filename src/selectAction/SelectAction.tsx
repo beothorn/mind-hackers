@@ -26,7 +26,7 @@ import EmojiEmotionsIcon from '@mui/icons-material/EmojiEmotions';
 import FaceRetouchingNaturalIcon from '@mui/icons-material/FaceRetouchingNatural';
 import Box from '@mui/material/Box';
 
-import { PlayerAction } from '../gameStateSlice';
+import { PlayerAction } from '../PlayerActions';
 
 import { selectOrder, selectPlayerHasKey } from '../gameStateSlice';
 

@@ -9,7 +9,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 
 import { useAppSelector, useAppDispatch } from '../hooks'
 import { selectOpenAiKey } from '../appStateSlice';
-import { PlayerAction, dispatchPlayerAction, selectGameState } from '../gameStateSlice';
+import { dispatchPlayerAction, selectGameState } from '../gameStateSlice';
+import { PlayerAction } from '../PlayerActions';
 
 type Option = {
     name: string,
@@ -49,16 +50,20 @@ export function ExpandableList({action, options}: {action: string, options: Opti
     if(optionsAvailableCount === 0) return <></>;
 
     return <List>
-        <ListItemButton sx={{ pl: 8 }} onClick={handleClick}>
+        <ListItemButton key={action+'button'} sx={{ pl: 8 }} onClick={handleClick}>
             <ListItemText primary={action} />
             {open ? <ExpandLess /> : <ExpandMore />}
         </ListItemButton>
-        <Collapse in={open} timeout="auto" unmountOnExit>
+        <Collapse key={action+'collapse'} in={open} timeout="auto" unmountOnExit>
             <List>
                 {
                     options.map( o => 
                         o.condition && !o.condition(useAppSelector) ? <></>:
-                        <ListItemButton onClick={() => handleOptionClick(o.playerAction)}  key={action+o.name} sx={{ pl: 12 }}>
+                        <ListItemButton 
+                            onClick={() => handleOptionClick(o.playerAction)}  
+                            key={action+o.name} 
+                            sx={{ pl: 12 }}
+                        >
                             <ListItemIcon>
                                 {o.icon}
                             </ListItemIcon>
