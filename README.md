@@ -2,7 +2,7 @@
 
 A game/experiment using gpt-3 api.
 
-You can skip to the conlcusion at the end or play the protype (here)[http://www.isageek.com.br/mind-hackers/]
+You can skip to the conlcusion at the end or play the protype [here](http://www.isageek.com.br/mind-hackers/)
 
 # Core idea
 
